@@ -1,69 +1,63 @@
 import cv2
-import mediapipe as mp
+import numpy as np
 from ultralytics import YOLO
 
-# Create a new YOLO model from scratch
-model = YOLO("yolo11n.yaml")
+# Load YOLOv8 model
+model = YOLO('yolov8n.pt')  # Use the Nano model for speed; maybe switch to yolov8s.pt or yolov8m.pt for more accuracy
 
-# Load a pretrained YOLO model (recommended for training)
-model = YOLO("yolo11n.pt")
-
-# Initialize Mediapipe for pose estimation
-mp_pose = mp.solutions.pose
-pose = mp_pose.Pose()
-mp_drawing = mp.solutions.drawing_utils
-
+# Background subtractor for motion detection
+bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=50, varThreshold=25)
 
 def detect_and_wave(frame):
-    # Step 1: Use YOLO for human detection
-    results = model.predict(frame)
-    humans = [res for res in results if res['class'] == 'person']
+    """
+    Detect a human and detect if they are waving.
+    :param frame:
+    :return:
+    """
+    results = model.predict(source=frame, conf=0.5, stream=True)  # Stream results for real-time performance
+    is_waving = False
 
-    if not humans:
-        return frame, False  # No humans detected
+    for result in results:
+        for box in result.boxes:
+            # YOLOv8 box attributes
+            x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
+            conf = box.conf[0].item()  # Confidence score
+            cls = int(box.cls[0].item())  # Class ID
 
-    # Step 2: Pose estimation. This is not refined yet.
-    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results_pose = pose.process(img_rgb)
+            # Check if detected object is a person (class 0 for 'person')
+            if cls == 0:
+                # Draw the bounding box
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    if results_pose.pose_landmarks:
-        mp_drawing.draw_landmarks(frame, results_pose.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+                # Define ROI (upper half of the bounding box)
+                roi = frame[y1:y1 + (y2 - y1) // 2, x1:x2]
 
-        # Extract keypoints
-        landmarks = results_pose.pose_landmarks.landmark
+                # Detect motion within the ROI
+                mask = bg_subtractor.apply(roi)
+                motion = cv2.countNonZero(mask)
 
-        # Identify hand positions
-        left_hand = landmarks[mp_pose.PoseLandmark.LEFT_WRIST]
-        right_hand = landmarks[mp_pose.PoseLandmark.RIGHT_WRIST]
-        shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER]
+                # Threshold for waving motion
+                if motion > 3000:  # Adjust threshold based on environment
+                    is_waving = True
+                    cv2.putText(frame, "Waving Detected", (x1, y1 - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-        is_waving = False
-        # Check if a hand is raised above the shoulder.
-        # Detection of an actual waving hand needs to be implemented.
-        if (right_hand.y < shoulder.y) or (left_hand.y < shoulder.y):
-            # Check for waving motion here, then set is_waving to True
-            is_waving = True
-
-        return frame, is_waving
-
-    return frame, False
+    return frame, is_waving
 
 
 # Video capture
-capture = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)
 
-while capture.isOpened():
-    ret, frame = capture.read()
+while cap.isOpened():
+    ret, frame = cap.read()
     if not ret:
         break
 
     frame, is_waving = detect_and_wave(frame)
-    if is_waving:
-        cv2.putText(frame, "Waving Detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.imshow("Waving Detection", frame)
 
-    cv2.imshow("Frame", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-capture.release()
+cap.release()
 cv2.destroyAllWindows()
