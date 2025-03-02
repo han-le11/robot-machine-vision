@@ -62,8 +62,8 @@ Currently, the repository structure is as follows:
 │   ├── test-videos/                # Folder containing test video files     
 ├── with_intel_cam/      
 │   ├── main.py                     # Main script for waving detection from Intel RealSense camera
-├── requirements.txt    # Python dependencies
-├── README.md           # Documentation (this file)
+├── requirements.txt                # Python dependencies
+├── README.md                       # Documentation (this file)
 ```
 
 ## Known Issues
