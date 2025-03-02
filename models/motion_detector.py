@@ -10,28 +10,28 @@ class MotionDetector:
 
         Args:
             model_path (str): Path to the YOLO model.
-            motion_threshold (int): Threshold for detecting waving motion.
+            motion_threshold (int): Threshold for detecting motion.
         """
         self.model = YOLO(model_path)
         self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=50, varThreshold=25)
         self.motion_threshold = motion_threshold
 
-    def detect_and_wave(self, frame: np.ndarray):
+    def detect_motions(self, frame: np.ndarray):
         """
-        Detect a waving motion in the given frame.
+        Detect a motion in the given frame.
 
         Args:
             frame (numpy.ndarray): A single video frame.
 
         Returns:
-            tuple: Processed frame and a boolean indicating if waving was detected.
+            tuple: Processed frame and a boolean indicating if motion/movement was detected.
         """
         results = self.model.predict(source=frame, conf=0.5, stream=True)
-        is_waving = False
+        is_moving = False
 
         for result in results:
             for box in result.boxes:
-                # box attributes
+                # Box attributes
                 x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
                 conf = box.conf[0].item()  # Confidence score
                 cls = int(box.cls[0].item())  # Class ID
@@ -48,20 +48,20 @@ class MotionDetector:
                     mask = self.bg_subtractor.apply(roi)
                     motion = cv2.countNonZero(mask)
 
-                    # Threshold for waving motion
+                    # Threshold for motion detection
                     if motion > self.motion_threshold:
-                        is_waving = True
-                        cv2.putText(frame, "Waving Detected", (x1, y1 - 10),
+                        is_moving = True
+                        cv2.putText(frame, "Motion Detected", (x1, y1 - 10),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-        return frame, is_waving
+        return frame, is_moving
 
     def process_videos(self, folder_path: str):
         """
         Process all video files in the specified folder.
 
         Args:
-            folder_path (str): Path to the folder containing video files.
+            folder_path (str): Path to the folder containing test video files.
         """
         for video_file in os.listdir(folder_path):
             if video_file.endswith((".mp4", ".avi", ".mov")):
@@ -75,9 +75,9 @@ class MotionDetector:
                     if not ret:
                         break  # Break when the video ends
 
-                    # Process the frame for waving detection
-                    frame, is_waving = self.detect_and_wave(frame)
-                    cv2.imshow("Waving Detection", frame)
+                    # Process the frame for moving detection
+                    frame, is_waving = self.detect_motions(frame)
+                    cv2.imshow("Motion Detection", frame)
 
                     # Press 'q' to skip to the next video
                     if cv2.waitKey(1) & 0xFF == ord('q'):
