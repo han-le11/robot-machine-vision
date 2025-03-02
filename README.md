@@ -1,13 +1,13 @@
 # Product Development Project - Heureka Robot Machine Vision
 
-This repository provides a machine vision implementation for detecting waving gestures in real-time.
+This repository provides a machine vision implementation for detecting human motions in real-time.
 
 ![Our interactive robot with a 3D printed hand](./media/ABB-IRB-robot.png)
 
 
 ## Current Features
 - **YOLOv8 for Person Detection**: Utilizes the YOLOv8 model to detect humans in real-time.
-- **Motion Detection**: Detects waving gestures by analyzing motion within the bounding box of detected persons.
+- **Motion Detection**: Detects moving gestures by analyzing motion within the bounding box of detected persons.
 - **Flexible Input**:
   - Process live input from a webcam camera.
   - Process video files from a folder.
@@ -34,25 +34,18 @@ Dependencies currently include:
 ## Usage
 Currently, the script supports the following use cases:
 
-### 1. Waving detection from videos
+### 1. Motion detection from videos
 To process a folder of test videos:
 1. Place your video files in a folder (here it's `test-videos`).
-2. Run the following script:
+2. Run the following command:
 
 ```bash
-python draft.py
+python with_stock_vid/main.py
 ```
-The script will iterate through all video files in the specified folder and display the processed frames with waving detection results.
+The script will iterate through all video files in the specified folder and display the processed frames with motion detection results.
 
-### 2. Waving Detection from Intel RealSense Camera
-To use live input from an Intel RealSense camera:
-1. Ensure the camera is connected to your system.
-2. Run the script:
-
-```bash
-python draft.py
-```
-The script will use the camera feed to detect waving gestures in real-time.
+### 2. Waving Detection from Camera
+TO BE ADDED: Script for live motion detection from webcam camera.
 
 ## Main Structure of Repository
 Currently, the repository structure is as follows:
@@ -63,7 +56,7 @@ Currently, the repository structure is as follows:
 ├── with_stock_vid/                 
 │   ├── main.py                     # Main script with stock videos
 │   ├── test-videos/                # Folder containing test video files     
-├── with_camera/      
+├── with_camera/                    # TO BE ADDED
 │   ├── main.py                     # TO BE ADDED: Script for motion detection from webcam camera
 ├── requirements.txt                # Python dependencies
 ├── README.md                       # Documentation (this file)
