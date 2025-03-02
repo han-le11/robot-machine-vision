@@ -31,7 +31,7 @@ class MotionDetector:
 
         for result in results:
             for box in result.boxes:
-                # YOLOv8 box attributes
+                # box attributes
                 x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
                 conf = box.conf[0].item()  # Confidence score
                 cls = int(box.cls[0].item())  # Class ID

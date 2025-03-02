@@ -10,7 +10,7 @@ This repository provides an implementation for detecting waving gestures using t
   - Process video files from a folder.
   - Process live input from an Intel RealSense camera.
 
-## Requirements
+## How to Run
 ### Hardware
 - A computer with a webcam camera.
 
@@ -54,12 +54,14 @@ The script will use the camera feed to detect waving gestures in real-time.
 ## Main Structure of Repository
 Currently, the repository structure is as follows:
 ```
-├── models/                         # Contains machine learning models
+├── models/                         # For classes that use machine learning models
 │   ├── motion_detector.py          # Contains the MotionDetector class
 │   ├── yolov8n.py                  # The YOLOv8 model for person detection
-├── with_stock_vid/             # Main script for waving detection
-├── with_intel_cam/       # Main script for waving detection from Intel RealSense camera
-├── test-videos/        # Folder containing test video files
+├── with_stock_vid/                 
+│   ├── main.py                     # Main script with stock videos
+│   ├── test-videos/                # Folder containing test video files     
+├── with_intel_cam/      
+│   ├── main.py                     # Main script for waving detection from Intel RealSense camera
 ├── requirements.txt    # Python dependencies
 ├── README.md           # Documentation (this file)
 ```
