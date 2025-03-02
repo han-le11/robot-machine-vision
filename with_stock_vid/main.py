@@ -1,9 +1,8 @@
 import cv2
-import numpy as np
 from ultralytics import YOLO
 
 # Load YOLOv8 model
-model = YOLO('yolov8n.pt')  # Use the Nano model for speed; maybe switch to yolov8s.pt or yolov8m.pt for more accuracy
+model = YOLO('yolov8n.pt')
 
 # Background subtractor for motion detection
 bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=50, varThreshold=25)
@@ -45,17 +44,21 @@ def detect_and_wave(frame):
     return frame, is_waving
 
 
-# Video capture
-cap = cv2.VideoCapture(0)
+# test with different stock videos
+
+path = "test-videos/test1.mp4"
+cap = cv2.VideoCapture(path)
 
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
-        break
+        break  # Break when the video ends
 
     frame, is_waving = detect_and_wave(frame)
+    print("Is this persion waving? ", is_waving)
     cv2.imshow("Waving Detection", frame)
 
+    # Press 'q' to exit early
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
