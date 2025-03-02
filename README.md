@@ -1,6 +1,9 @@
 # Product Development Project - Heureka Robot Machine Vision
 
-This repository provides an implementation for detecting waving gestures using the YOLO object detection model.
+This repository provides a machine vision implementation for detecting waving gestures in real-time.
+
+![Our interactive robot with a 3D printed hand](./media/ABB-IRB-robot.png)
+
 
 ## Current Features
 - **YOLOv8 for Person Detection**: Utilizes the YOLOv8 model to detect humans in real-time.
@@ -18,7 +21,7 @@ This repository provides an implementation for detecting waving gestures using t
 - Python 3.10+
 
 ### Python Dependencies
-Install the required Python packages:
+After cloning, please install the required Python packages:
 ```bash
 pip install -r requirements.txt
 ```
@@ -31,13 +34,13 @@ Dependencies currently include:
 ## Usage
 Currently, the script supports the following use cases:
 
-### 1. Waving Detection from Test Videos
+### 1. Waving detection from videos
 To process a folder of test videos:
-1. Place your video files in a folder (e.g., `test-videos`).
+1. Place your video files in a folder (here it's `test-videos`).
 2. Run the following script:
 
 ```bash
-python main.py
+python draft.py
 ```
 The script will iterate through all video files in the specified folder and display the processed frames with waving detection results.
 
@@ -47,7 +50,7 @@ To use live input from an Intel RealSense camera:
 2. Run the script:
 
 ```bash
-python main.py
+python draft.py
 ```
 The script will use the camera feed to detect waving gestures in real-time.
 
@@ -56,18 +59,18 @@ Currently, the repository structure is as follows:
 ```
 ├── models/                         # For classes that use machine learning models
 │   ├── motion_detector.py          # Contains the MotionDetector class
-│   ├── yolov8n.py                  # The YOLOv8 model for person detection
+│   ├── yolov8n.py                  # The YOLOv8 model for object detection
 ├── with_stock_vid/                 
 │   ├── main.py                     # Main script with stock videos
 │   ├── test-videos/                # Folder containing test video files     
-├── with_intel_cam/      
-│   ├── main.py                     # Main script for waving detection from Intel RealSense camera
+├── with_camera/      
+│   ├── main.py                     # TO BE ADDED: Script for motion detection from webcam camera
 ├── requirements.txt                # Python dependencies
 ├── README.md                       # Documentation (this file)
 ```
 
 ## Known Issues
-- **Motion Detection Sensitivity**: Stock videos may require fine-tuning of the motion detection threshold.
+- **Motion Detection Sensitivity**: Requires further fine-tuning of the motion detection threshold. The algorithm still needs to distinguish actual waving gesture to other motions.
 - **Deprecated Warnings**: Some platforms may show warnings for deprecated camera APIs.
 - **Intel RealSense SDK Installation**: Ensure `pyrealsense2` is installed correctly for live camera input.
 
