@@ -10,6 +10,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.venv/
 .Python
 build/
 develop-eggs/
@@ -68,3 +69,6 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+
+#yolo models
+yolov8*
