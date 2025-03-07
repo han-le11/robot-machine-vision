@@ -21,7 +21,7 @@ This repository provides a machine vision implementation for detecting human mot
 - Python 3.10+
 
 ### Python Dependencies
-After cloning, please install the required Python packages:
+After cloning, please install the required Python packages by running this command:
 ```bash
 pip install -r requirements.txt
 ```
