@@ -1,6 +1,8 @@
 import sys
 import os
 
+# Script to run and test WaveDetector with a camera
+
 current_dir = os.path.dirname(__file__)
 project_dir = os.path.dirname(current_dir)
 
