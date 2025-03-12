@@ -10,3 +10,10 @@
     
 - **Machine learning model**:
   - YOLOv8 for person detection, by [Ultralytics](https://github.com/ultralytics/yolov8). Key features of YOLOv8 model [here](https://docs.ultralytics.com/models/yolov8/#key-features-of-yolov8) 
+
+### `WaveDetector`
+- **Methods**:
+  - `detect_wave(frame)`:
+    - Detects a waving motion in a single frame.
+  - `process_camera()`:
+    - Uses the Intel RealSense camera to detect waving in real-time.
