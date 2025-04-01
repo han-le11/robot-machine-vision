@@ -32,7 +32,7 @@ class GestureDetector:
 
         # Set up gesture recognizer options
         self.options = GestureRecognizerOptions(
-            base_options=BaseOptions(model_asset_path=self.model_path),
+            base_options=BaseOptions(model_asset_buffer=open(model_path, "rb").read()),
             running_mode=VisionRunningMode.LIVE_STREAM,  # Required for real-time mode
             result_callback=result_callback  # Callback function for async processing
         )
