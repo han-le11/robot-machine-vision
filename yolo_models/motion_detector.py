@@ -33,7 +33,7 @@ class MotionDetector:
             for box in result.boxes:
                 # Box attributes
                 x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
-                conf = box.conf[0].item()  # Confidence score
+                conf = box.conf[0].item()  # Confidence score, might be useful later for filtering
                 cls = int(box.cls[0].item())  # Class ID
 
                 # Check if detected object is a person (class 0 for 'person')
@@ -88,3 +88,29 @@ class MotionDetector:
 
         cv2.destroyAllWindows()
 
+    def process_camera(self, camera_index=0):
+        """
+        Process video input from a webcam.
+
+        Args:
+            camera_index (int): Index of the camera (default is 0 for the built-in webcam).
+        """
+        cap = cv2.VideoCapture(camera_index)
+        if not cap.isOpened():
+            print("Error: Could not open camera.")
+            return
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            frame, is_waving = self.detect_motions(frame)
+            cv2.imshow("Waving Detection", frame)
+
+            # Press 'q' to exit
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        cap.release()
+        cv2.destroyAllWindows()
