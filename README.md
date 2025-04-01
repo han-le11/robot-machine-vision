@@ -56,8 +56,8 @@ Currently, the repository structure is as follows:
 ├── with_stock_vid/                 
 │   ├── main.py                     # Main script with stock videos
 │   ├── test-videos/                # Folder containing test video files     
-├── with_camera/                    # TO BE ADDED
-│   ├── main.py                     # TO BE ADDED: Script for motion detection from webcam camera
+├── with_camera/                    
+│   ├── main.py                     # Script to run motion detection from camera
 ├── requirements.txt                # Python dependencies
 ├── README.md                       # Documentation (this file)
 ```
