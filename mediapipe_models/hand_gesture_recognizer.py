@@ -41,7 +41,7 @@ class GestureDetector:
 
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
-        self.cap = cv2.VideoCapture(2)  # Initialize the camera
+        self.cap = cv2.VideoCapture(1)  # Initialize the camera
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def draw_hand_skeleton(self, frame, hand_landmarks):
@@ -67,8 +67,13 @@ class GestureDetector:
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
         if gesture != self.last_gesture:
-            self.last_gesture = gesture  # Update last gesture
-            send_socket_message(gesture)  # Send message
+            self.last_gesture = gesture
+            if gesture == "Thumb_Up":
+                send_socket_message("Up Thumbs")
+            elif gesture == "Thumb_Down":
+                send_socket_message("Down Thumbs")
+            else:
+                send_socket_message(gesture)
 
     def run(self):
         """Start real-time gesture recognition with hand skeleton tracking."""
@@ -98,14 +103,7 @@ class GestureDetector:
             if self.gesture_result:
                 cv2.putText(frame, f'Gesture: {self.gesture_result}', (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2, cv2.LINE_AA)
-                if self.gesture_result == "Open_Palm":
-                    self.send_gesture_message("Waving")
-                elif self.gesture_result == "Closed_Fist":
-                    self.send_gesture_message("Fist")
-                elif self.gesture_result == "Thumb_Up":
-                    self.send_gesture_message("Thumbs Up")
-                else:
-                    self.send_gesture_message("None")
+                self.send_gesture_message(self.gesture_result)
 
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
