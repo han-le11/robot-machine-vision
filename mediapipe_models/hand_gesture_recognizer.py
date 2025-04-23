@@ -1,10 +1,10 @@
 import cv2
 import mediapipe as mp
+import time
+
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from socketMessage import send_socket_message
-# from mediapipe.tasks.python.vision import GestureRecognizer, GestureRecognizerOptions
-# from mediapipe.tasks.BaseOptions import BaseOptions
 
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -14,7 +14,7 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 class GestureDetector:
     def __init__(self, model_path="mediapipe_models/gesture_recognizer.task"):
-        """Initialize the GestureDetector with the given model."""
+        """Initialize the GestureDetector with the given model path."""
         self.model_path = model_path
         self.gesture_result = None  # Store detected gesture
         self.last_gesture = None
@@ -35,16 +35,52 @@ class GestureDetector:
         # Set up gesture recognizer options
         self.options = GestureRecognizerOptions(
             base_options=BaseOptions(model_asset_buffer=open(model_path, "rb").read()),
-            running_mode=VisionRunningMode.LIVE_STREAM,  # Required for real-time mode
+            running_mode=VisionRunningMode.LIVE_STREAM,  # Required for real-time video mode
             result_callback=result_callback  # Callback function for async processing
         )
 
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
-        self.cap = cv2.VideoCapture(1)  # Initialize the camera
+        # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
+        self.cap = cv2.VideoCapture(1)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
-    def draw_hand_skeleton(self, frame, hand_landmarks):
+    def detect_middle_finger(self, hand_landmarks) -> bool:
+        """
+        Detect if the middle finger is extended while other fingers are bent.
+
+        Args:
+            hand_landmarks: Hand landmarks detected by MediaPipe's Hands.
+
+        Returns:
+            bool: True if the middle finger gesture is detected, False otherwise.
+        """
+        # Finger landmark indices as defined by MediaPipe
+        THUMB_TIP, THUMB_BASE = 4, 2
+        INDEX_TIP, INDEX_BASE = 8, 6
+        MIDDLE_TIP, MIDDLE_BASE = 12, 10
+        RING_TIP, RING_BASE = 16, 14
+        PINKY_TIP, PINKY_BASE = 20, 18
+
+        # Helper function with logic to detect middle finger:
+        # Middle finger's tip must be above its base, and other fingers' tips should be below their bases.
+        def is_extended(tip, base):
+            return tip.y < base.y
+
+        middle_finger_extended = is_extended(hand_landmarks.landmark[MIDDLE_TIP],
+                                             hand_landmarks.landmark[MIDDLE_BASE])
+        other_fingers_bent = all(
+            not is_extended(hand_landmarks.landmark[tip], hand_landmarks.landmark[base])
+            for tip, base in [
+                (THUMB_TIP, THUMB_BASE),
+                (INDEX_TIP, INDEX_BASE),
+                (RING_TIP, RING_BASE),
+                (PINKY_TIP, PINKY_BASE),
+            ]
+        )
+        return middle_finger_extended and other_fingers_bent
+
+    def draw_hand_skeleton(self, frame, hand_landmarks) -> None:
         """Draw the hand skeleton using MediaPipe landmarks."""
         for landmarks in hand_landmarks:
             for connection in self.mp_hands.HAND_CONNECTIONS:
@@ -64,6 +100,14 @@ class GestureDetector:
                 x, y = int(landmark.x * w), int(landmark.y * h)
                 cv2.circle(frame, (x, y), 5, (0, 0, 128), -1)
 
+            # Detect if the middle finger gesture is present
+            if self.detect_middle_finger(landmarks):
+                cv2.putText(frame, "Middle Finger Detected", (50, 100),
+                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2, cv2.LINE_AA)
+                # Send a socket message for middle finger detection
+                self.send_gesture_message("Middle_Finger")
+                # cv2.putText(frame, f'Test: sending message: Middle_Finger', )
+
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
         if gesture != self.last_gesture:
@@ -76,11 +120,17 @@ class GestureDetector:
                 send_socket_message(gesture)
 
     def run(self):
-        """Start real-time gesture recognition with hand skeleton tracking."""
+        """Start real-time gesture recognition with hand tracking."""
+        last_message_time = 0  # Last message timestamp
+
         while self.cap.isOpened():
             ret, frame = self.cap.read()
             if not ret:
                 break
+
+            def display_text(text):
+                cv2.putText(frame, f'Detected: {self.gesture_result}', (50, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2, cv2.LINE_AA)
 
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -99,7 +149,7 @@ class GestureDetector:
             self.timestamp += 30  # Increment timestamp (approx. 30ms per frame)
             self.recognizer.recognize_async(mp_image, self.timestamp)
 
-            # Display detected gesture on the frame
+            # Display detected gesture on the screen
             if self.gesture_result:
                 cv2.putText(frame, f'Gesture: {self.gesture_result}', (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2, cv2.LINE_AA)
