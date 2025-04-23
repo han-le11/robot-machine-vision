@@ -6,7 +6,7 @@ project_dir = os.path.dirname(current_dir)
 
 sys.path.insert(0, project_dir)
 
-from models.motion_detector import MotionDetector
+from yolo_models.motion_detector import MotionDetector
 
 if __name__ == "__main__":
     detector = MotionDetector()

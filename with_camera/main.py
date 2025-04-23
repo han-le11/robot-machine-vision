@@ -8,7 +8,7 @@ project_dir = os.path.dirname(current_dir)
 
 sys.path.insert(0, project_dir)
 
-from models.wave_detector import WaveDetector
+from yolo_models.wave_detector import WaveDetector
 
 if __name__ == "__main__":
     detector = WaveDetector()
