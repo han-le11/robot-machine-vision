@@ -1,13 +1,16 @@
+import time
 import cv2
 import mediapipe as mp
 
-class MiddleFingerDetector:
-    def __init__(self, model_path="mediapipe_models/hand_landmarker.task"):
+BaseOptions = mp.tasks.BaseOptions
+HandLandmarker = mp.tasks.vision.HandLandmarker
+HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
+HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
+VisionRunningMode = mp.tasks.vision.RunningMode
+
+class LandmarkerDetector:
+    def __init__(self, model_path="mediapipe_models/landmarker_model.task"):
         self.mp = mp
-        BaseOptions = self.mp.tasks.BaseOptions
-        HandLandmarker = self.mp.tasks.vision.HandLandmarker
-        HandLandmarkerOptions = self.mp.tasks.vision.HandLandmarkerOptions
-        VisionRunningMode = self.mp.tasks.vision.RunningMode
 
         self.options = HandLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=model_path),
@@ -59,8 +62,11 @@ class MiddleFingerDetector:
                 # Convert frame to MediaPipe Image format
                 mp_image = self.mp.Image(image_format=self.mp.ImageFormat.SRGB, data=frame)
 
+                # Use a monotonically increasing timestamp
+                current_timestamp = int(time.time() * 1000)  # Current time in milliseconds
+
                 # Process frame
-                self.landmarker.detect_async(mp_image, int(cap.get(cv2.CAP_PROP_POS_MSEC)))
+                self.landmarker.detect_async(mp_image, current_timestamp)
 
                 # Show the frame
                 cv2.imshow('Hand Tracking', frame)
@@ -73,5 +79,7 @@ class MiddleFingerDetector:
 
 # Usage
 if __name__ == "__main__":
-    detector = MiddleFingerDetector("mediapipe_models/hand_landmarker.task")
+    detector = LandmarkerDetector("mediapipe_models/landmarker_model.task")
     detector.start_video_stream()
+
+
