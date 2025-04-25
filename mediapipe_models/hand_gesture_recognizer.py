@@ -42,7 +42,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -102,11 +102,10 @@ class GestureDetector:
 
             # Detect if the middle finger gesture is present
             if self.detect_middle_finger(landmarks):
-                cv2.putText(frame, "Middle Finger Detected", (50, 100),
-                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2, cv2.LINE_AA)
-                # Send a socket message for middle finger detection
-                self.send_gesture_message("Middle_Finger")
-                # cv2.putText(frame, f'Test: sending message: Middle_Finger', )
+                cv2.putText(frame, 'Detected: Middle finger', (0, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                # TODO: comment out the line below if not connected to server
+                # self.send_gesture_message("Middle_Finger")
 
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
@@ -122,15 +121,16 @@ class GestureDetector:
     def run(self):
         """Start real-time gesture recognition with hand tracking."""
         last_message_time = 0  # Last message timestamp
-
+        if not self.cap.isOpened():
+            print("Could not open camera. Check the camera connection.")
         while self.cap.isOpened():
             ret, frame = self.cap.read()
             if not ret:
                 break
 
             def display_text(text):
-                cv2.putText(frame, f'Detected: {self.gesture_result}', (50, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2, cv2.LINE_AA)
+                cv2.putText(frame, f'Detected: {self.gesture_result}', (0, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -149,12 +149,15 @@ class GestureDetector:
             self.timestamp += 30  # Increment timestamp (approx. 30ms per frame)
             self.recognizer.recognize_async(mp_image, self.timestamp)
 
+            current_time = time.time()
             # Display detected gesture on the screen
             if self.gesture_result:
-                cv2.putText(frame, f'Gesture: {self.gesture_result}', (50, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2, cv2.LINE_AA)
-                self.send_gesture_message(self.gesture_result)
-
+                display_text(f'Gesture: {self.gesture_result}')
+                if current_time - last_message_time >= 1.5:
+                    print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
+                    # TODO: comment out the line below if not connected to server
+                    # self.send_gesture_message(self.gesture_result)
+                    last_message_time = current_time
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
 
