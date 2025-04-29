@@ -109,14 +109,7 @@ class GestureDetector:
 
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
-        if gesture != self.last_gesture:
-            self.last_gesture = gesture
-            if gesture == "Thumb_Up":
-                send_socket_message("Up Thumbs")
-            elif gesture == "Thumb_Down":
-                send_socket_message("Down Thumbs")
-            else:
-                send_socket_message(gesture)
+        send_socket_message(gesture)
 
     def run(self):
         """Start real-time gesture recognition with hand tracking."""
