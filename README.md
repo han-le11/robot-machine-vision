@@ -1,76 +1,32 @@
-# Product Development Project - Heureka Robot Machine Vision
+# Machine Vision Pipeline for Pose Analysis
 
-This repository provides a machine vision implementation for detecting human motions in real-time.
+## Project Structure
+```
+├── config/             # Configuration file
+│   └── config.json     # Model parameters and paths
+├── data/               # Raw and cached video datasets
+├── outputs/            # Training logs and model checkpoints
+├── recordings/         # Webcam recording temporary storage
+└── src/                # Source file folder
+```
 
-![Our interactive robot with a 3D printed hand](./media/ABB-IRB-robot.png)
-
-
-## Current Features
-- **YOLOv8 for Person Detection**: Utilizes the YOLOv8 model to detect humans in real-time.
-- **Motion Detection**: Detects moving gestures by analyzing motion within the bounding box of detected persons.
-- **Flexible Input**:
-  - Process live input from a webcam camera.
-  - Process video files from a folder.
-  - Process live input from an Intel RealSense camera.
-
-## How to Run
-### Hardware
-- A computer with a webcam camera.
-
-### Software
-- Python 3.10+
-
-### Python Dependencies
-After cloning, please install the required Python packages by running this command:
+## Installation
 ```bash
 pip install -r requirements.txt
 ```
-Dependencies currently include:
-- `opencv-python`
-- `ultralytics`
-- `pyrealsense2`
-- `numpy`
 
-## Usage
-Currently, the script supports the following use cases:
-
-### 1. Motion detection from videos
-To process a folder of test videos:
-1. Place your video files in a folder (here it's `test-videos`).
-2. Run the following command:
-
+## Webcam Inference Workflow
+1. Start real-time inference with webcam:
 ```bash
-python with_stock_vid/main.py
-```
-The script will iterate through all video files in the specified folder and display the processed frames with motion detection results.
-
-### 2. Waving Detection from Camera
-TO BE ADDED: Script for live motion detection from webcam camera.
-
-## Main Structure of Repository
-Currently, the repository structure is as follows:
-```
-├── models/                         # For classes that use machine learning models
-│   ├── motion_detector.py          # Contains the MotionDetector class
-│   ├── yolov8n.py                  # The YOLOv8 model for object detection
-├── with_stock_vid/                 
-│   ├── main.py                     # Main script with stock videos
-│   ├── test-videos/                # Folder containing test video files     
-├── with_camera/                    
-│   ├── main.py                     # Script to run motion detection from camera
-├── requirements.txt                # Python dependencies
-├── README.md                       # Documentation (this file)
+python -m src.inference.inference
 ```
 
-## Known Issues
-- **Motion Detection Sensitivity**: Requires further fine-tuning of the motion detection threshold. The algorithm still needs to distinguish actual waving gesture to other motions.
-- **Deprecated Warnings**: Some platforms may show warnings for deprecated camera APIs.
-- **Intel RealSense SDK Installation**: Ensure `pyrealsense2` is installed correctly for live camera input.
 
+Inference:
+- Press 'Q' to exit
+- Visual feedback shows landmark confidence scores
+- Terminal also prints confidence scores
 
-## Acknowledgments
-- YOLOv8 model by [Ultralytics](https://github.com/ultralytics/yolov8). Key features of YOLOv8 model [here](https://docs.ultralytics.com/models/yolov8/#key-features-of-yolov8)
-- Intel RealSense SDK for Python
-
-
-
+## Configuration (config.json)
+All relevant configurations can be done in /config/config.json
+If setting is not found there it is not adivsable to change.

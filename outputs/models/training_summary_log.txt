@@ -1,0 +1,312 @@
+================================================================================
+Timestamp     : 2025-04-09 21:04:39.075651
+Config ID     : pose-seq16_batch16
+SEQ_LEN       : 16
+BATCH_SIZE    : 16
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 8
+Val Accuracy  : 0.9613
+Val F1 Score  : 0.9540
+Checkpoint    : pose_epoch08_valacc_96.13.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:07:06.814192
+Config ID     : pose-seq12_batch16
+SEQ_LEN       : 12
+BATCH_SIZE    : 16
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 9
+Val Accuracy  : 0.9588
+Val F1 Score  : 0.9500
+Checkpoint    : pose_epoch09_valacc_95.88.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:09:32.061622
+Config ID     : pose-seq8_batch8
+SEQ_LEN       : 8
+BATCH_SIZE    : 8
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 10
+Val Accuracy  : 0.9722
+Val F1 Score  : 0.9688
+Checkpoint    : pose_epoch10_valacc_97.22.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:09:52.557829
+Config ID     : pose-seq8_batch16
+SEQ_LEN       : 8
+BATCH_SIZE    : 16
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 8
+Val Accuracy  : 0.9605
+Val F1 Score  : 0.9549
+Checkpoint    : pose_epoch08_valacc_96.05.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:10:10.930366
+Config ID     : pose-seq8_batch32
+SEQ_LEN       : 8
+BATCH_SIZE    : 32
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 8
+Val Accuracy  : 0.9394
+Val F1 Score  : 0.9223
+Checkpoint    : pose_epoch08_valacc_93.94.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:10:35.636602
+Config ID     : pose-seq12_batch8
+SEQ_LEN       : 12
+BATCH_SIZE    : 8
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 9
+Val Accuracy  : 0.9579
+Val F1 Score  : 0.9568
+Checkpoint    : pose_epoch09_valacc_95.79.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:10:55.860499
+Config ID     : pose-seq12_batch16
+SEQ_LEN       : 12
+BATCH_SIZE    : 16
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 9
+Val Accuracy  : 0.9672
+Val F1 Score  : 0.9600
+Checkpoint    : pose_epoch09_valacc_96.72.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:11:14.384577
+Config ID     : pose-seq12_batch32
+SEQ_LEN       : 12
+BATCH_SIZE    : 32
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 10
+Val Accuracy  : 0.9554
+Val F1 Score  : 0.9472
+Checkpoint    : pose_epoch10_valacc_95.54.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:11:39.381161
+Config ID     : pose-seq16_batch8
+SEQ_LEN       : 16
+BATCH_SIZE    : 8
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 8
+Val Accuracy  : 0.9664
+Val F1 Score  : 0.9659
+Checkpoint    : pose_epoch08_valacc_96.64.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:11:59.774443
+Config ID     : pose-seq16_batch16
+SEQ_LEN       : 16
+BATCH_SIZE    : 16
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 10
+Val Accuracy  : 0.9588
+Val F1 Score  : 0.9524
+Checkpoint    : pose_epoch10_valacc_95.88.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:12:18.141826
+Config ID     : pose-seq16_batch32
+SEQ_LEN       : 16
+BATCH_SIZE    : 32
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 9
+Val Accuracy  : 0.9579
+Val F1 Score  : 0.9536
+Checkpoint    : pose_epoch09_valacc_95.79.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:16:58.145129
+Config ID     : pose-seq16_batch1
+SEQ_LEN       : 16
+BATCH_SIZE    : 1
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 10
+Val Accuracy  : 0.9622
+Val F1 Score  : 0.9566
+Checkpoint    : pose_epoch10_valacc_96.22.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:17:46.618988
+Config ID     : pose-seq16_batch2
+SEQ_LEN       : 16
+BATCH_SIZE    : 2
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 5
+Val Accuracy  : 0.9579
+Val F1 Score  : 0.9499
+Checkpoint    : pose_epoch05_valacc_95.79.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:18:19.335787
+Config ID     : pose-seq16_batch4
+SEQ_LEN       : 16
+BATCH_SIZE    : 4
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 10
+Val Accuracy  : 0.9596
+Val F1 Score  : 0.9524
+Checkpoint    : pose_epoch10_valacc_95.96.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:18:46.540452
+Config ID     : pose-seq16_batch6
+SEQ_LEN       : 16
+BATCH_SIZE    : 6
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 8
+Val Accuracy  : 0.9546
+Val F1 Score  : 0.9509
+Checkpoint    : pose_epoch08_valacc_95.46.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-09 21:19:11.573629
+Config ID     : pose-seq16_batch8
+SEQ_LEN       : 16
+BATCH_SIZE    : 8
+Train Samples : 2862
+Val Samples   : 1189
+Best Epoch    : 9
+Val Accuracy  : 0.9554
+Val F1 Score  : 0.9437
+Checkpoint    : pose_epoch09_valacc_95.54.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 17:15:03.743771
+Config ID     : pose-seq12_batch2
+SEQ_LEN       : 12
+BATCH_SIZE    : 2
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 9
+Val Accuracy  : 0.9298
+Val F1 Score  : 0.9191
+Checkpoint    : pose_epoch09_valacc_92.98.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 17:35:11.948862
+Config ID     : pose-seq12_batch4
+SEQ_LEN       : 12
+BATCH_SIZE    : 4
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 7
+Val Accuracy  : 0.9298
+Val F1 Score  : 0.9225
+Checkpoint    : pose_epoch07_valacc_92.98.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 17:48:21.076757
+Config ID     : pose-seq12_batch8
+SEQ_LEN       : 12
+BATCH_SIZE    : 8
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 15
+Val Accuracy  : 0.9372
+Val F1 Score  : 0.9388
+Checkpoint    : pose_epoch15_valacc_93.72.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 18:01:07.846134
+Config ID     : pose-seq12_batch8
+SEQ_LEN       : 12
+BATCH_SIZE    : 8
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 20
+Val Accuracy  : 0.4770
+Val F1 Score  : 0.4096
+Checkpoint    : pose_epoch20_valacc_47.70.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 18:29:07.541264
+Config ID     : pose-seq12_batch8
+SEQ_LEN       : 12
+BATCH_SIZE    : 8
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 50
+Val Accuracy  : 0.5583
+Val F1 Score  : 0.5045
+Checkpoint    : pose_epoch50_valacc_55.83.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 18:40:35.967378
+Config ID     : pose-seq12_batch16
+SEQ_LEN       : 12
+BATCH_SIZE    : 16
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 48
+Val Accuracy  : 0.7719
+Val F1 Score  : 0.7495
+Checkpoint    : pose_epoch48_valacc_77.19.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-16 18:57:31.540703
+Config ID     : pose-seq12_batch8
+SEQ_LEN       : 12
+BATCH_SIZE    : 8
+Train Samples : 6585
+Val Samples   : 2692
+Best Epoch    : 82
+Val Accuracy  : 0.8867
+Val F1 Score  : 0.8724
+Checkpoint    : pose_epoch82_valacc_88.67.pt
+================================================================================
+
+================================================================================
+Timestamp     : 2025-04-29 15:07:52.600020
+Config ID     : pose-seq12_batch8
+SEQ_LEN       : 12
+BATCH_SIZE    : 8
+Train Samples : 8194
+Val Samples   : 3504
+Best Epoch    : 132
+Val Accuracy  : 0.8878
+Val F1 Score  : 0.8735
+Checkpoint    : pose_epoch132_valacc_88.78.pt
+================================================================================
+

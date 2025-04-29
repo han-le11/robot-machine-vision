@@ -1,0 +1,31 @@
+{
+    "seq_len": 12,
+    "batch_size": 8,
+    "num_epochs": 150,
+    "learning_rate": 0.0001,
+    "feature_dim": 300,
+    "step": 8,
+    "labels": {
+        "no-gesture": 0,
+        "wave": 1,
+        "thumbs-up": 2,
+        "thumbs-down": 3,
+        "victory": 4,
+        "open-hand": 5,
+        "fist": 6
+    },
+    "paths": {
+        "train_dir": "data/data_cached/train",
+        "val_dir": "data/data_cached/val",
+        "model_dir": "outputs/models"
+    },
+    "class_weights": {
+        "no-gesture": 1.0,
+        "wave": 0.5,
+        "thumbs-up": 1.0,
+        "thumbs-down": 1.0,
+        "victory": 1.0,
+        "open-hand": 1.0,
+        "fist": 1.0
+}
+}
