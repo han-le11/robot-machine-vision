@@ -28,4 +28,4 @@ Inference:
 
 ## Configuration (config.json)
 All relevant configurations can be done in /config/config.json
-If setting is not found there it is not adivsable to change.
+If setting is not found there it is not advisable to change.
