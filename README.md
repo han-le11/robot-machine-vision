@@ -6,7 +6,6 @@
 │   └── config.json     # Model parameters and paths
 ├── data/               # Raw and cached video datasets
 ├── outputs/            # Training logs and model checkpoints
-├── recordings/         # Webcam recording temporary storage
 └── src/                # Source file folder
 ```
 
