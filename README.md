@@ -13,9 +13,10 @@ This repository provides a machine vision implementation for detecting human mot
   - Process video files from a folder.
   - Process live input from an Intel RealSense camera.
 
-## How to Run
+## Setup
 ### Hardware
 - A computer with a webcam camera.
+- OR an Intel RealSense camera.
 
 ### Software
 - Python 3.10+
@@ -34,18 +35,21 @@ Dependencies currently include:
 ## Usage
 Currently, the script supports the following use cases:
 
-### 1. Motion detection from videos
-To process a folder of test videos:
+### 1. Gesture detection from Intel RealSense camera or Webcam Camera
+Run the following command:
+```bash
+python mediapipe_models/hand_gesture_recognizer.py
+```
+
+### 2. Motion detection from test videos
+To process a folder of test videos (that are used as input to the model), follow these steps:
 1. Place your video files in a folder (here it's `test-videos`).
 2. Run the following command:
 
 ```bash
 python with_stock_vid/main.py
 ```
-The script will iterate through all video files in the specified folder and display the processed frames with motion detection results.
-
-### 2. Waving Detection from Camera
-TO BE ADDED: Script for live motion detection from webcam camera.
+The script will iterate through all video files in the specified folder and display the processed frames with motion detection results. .
 
 ## Main Structure of Repository
 Currently, the repository structure is as follows:
