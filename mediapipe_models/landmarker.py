@@ -33,8 +33,10 @@ class LandmarkerDetector:
                 print("Not detected")
 
     @staticmethod
+    # TODO: check that other fingers are bent.
     def is_middle_finger_extended_only(landmarks):
-        """Check if the middle finger is extended and other fingers are bent."""
+        """
+        Check if the middle finger is extended and other fingers are bent."""
         # Indexes for the middle finger landmarks
         MCP = 9  # Middle finger's base
         PIP = 10  # Middle finger's proximal joint
@@ -50,7 +52,7 @@ class LandmarkerDetector:
 
     def run(self):
         """Start video stream and process frames."""
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(0)
 
         try:
             while cap.isOpened():
