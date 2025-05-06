@@ -1,7 +1,8 @@
 import socket
+from lampColor import change_lamp_color
 
 # Define connection parameters
-HOST = "192.168.125.1"  # locally: 127.0.0.1  
+HOST = "192.168.125.1"  # locally: 127.0.0.1  #"192.168.125.1" 
 PORT = 5000         # Same port as in RAPID
 
 def send_socket_message(message):
@@ -11,12 +12,16 @@ def send_socket_message(message):
         s.connect((HOST, PORT))
 
         # Send test command
-        # message = "WAVE\n"
+        message = "WAVE\n"
         s.sendall(message.encode())
 
-        print("Message sent to RobotStudio:", message)
+        print("Message sent to RobotStudio:", message.encode())
+        change_lamp_color(message)
 
         # Close connection
         s.close()
     except Exception as e:
         print("Error:", e)
+        # Close connection
+        s.close()
+
