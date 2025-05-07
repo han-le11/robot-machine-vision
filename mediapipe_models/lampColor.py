@@ -19,7 +19,7 @@ def change_lamp_color(message):
 
 def send_color_change(color):
     try:
-        response = requests.get(f"{ESP32_IP}/{color}")
+        response = requests.get(f"{ESP32_IP}/{color}", timeout=0.5)
         print(f"Response from ESP32 for {color}:")
         print(response.text)
     except requests.exceptions.RequestException as e:
