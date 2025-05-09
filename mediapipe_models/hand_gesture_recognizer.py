@@ -28,7 +28,7 @@ class GestureDetector:
 
         # A dictionary that loads images for gestures
         self.gesture_images = {
-            "Fist" : cv2.imread("./pictograms/fist.png", cv2.IMREAD_UNCHANGED),
+            "Closed_Fist" : cv2.imread("./pictograms/fist.png", cv2.IMREAD_UNCHANGED),
             "Middle_Finger": cv2.imread("./pictograms/middle_finger.png", cv2.IMREAD_UNCHANGED),
             "Thumb_Up": cv2.imread("./pictograms/thumb_up.png", cv2.IMREAD_UNCHANGED),
             "Thumb_Down": cv2.imread("./pictograms/thumb_down.png", cv2.IMREAD_UNCHANGED),
@@ -38,12 +38,14 @@ class GestureDetector:
         }
 
         self.gesture_texts = {
-            "Thumb_Up": "Human's sign of approval! I'm glad!",
-            "Thumb_Down": "Thumb down?! I'm sad and don't want to do anything anymore!",
-            "Waving": "Hi! Does human wave to say hi? Let me try to mimic that.",
-            "Victory": "I don't know how to mimic that, but it must means positive",
-            "Fist": "Did you just threaten me?",
+            "Closed_Fist": "Did you just threaten me?!",
             "Middle finger": "That's not really nice of you!",
+            "Thumb_Down": "Thumb down?!\n"
+                          "I'm sad and don't want to do anything anymore!\n",
+            "Thumb_Up": "Human's sign of approval! I'm glad!",
+            "Victory": "I don't know how to mimic that,\n"
+                       "but it must mean positive",
+            "Waving": "Hi! Does human wave to say hi? What's up?",
         }
 
         # Define callback function
@@ -131,20 +133,34 @@ class GestureDetector:
 
     def overlay_image(self, frame, overlay, x, y, scale=1.0):
         """
-        Overlays a transparent image on a frame.
+        Overlays a transparent image (with alpha channel) on a frame at the specified position.
+
+        Args:
+            frame: The video frame (background) on which to overlay.
+            overlay: The transparent image to overlay (must have 4 channels, including alpha).
+            x, y: The top-left corner coordinates where the overlay will be placed.
+            scale: Scaling factor for the overlay image.
         """
+        # Resize the overlay image based on the scale factor
         overlay = cv2.resize(overlay, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
-        h, w, _ = overlay.shape
-        y1, y2 = max(0, y), min(frame.shape[0], y + h)
-        x1, x2 = max(0, x), min(frame.shape[1], x + w)
-        alpha_overlay = overlay[:, :, 3] / 255.0
+        overlay_h, overlay_w, _ = overlay.shape
+
+        # Ensure the overlay fits within the frame boundaries
+        frame_h, frame_w, _ = frame.shape
+        y1, y2 = max(0, y), min(frame_h, y + overlay_h)
+        x1, x2 = max(0, x), min(frame_w, x + overlay_w)
+
+        # Crop the overlay and alpha channel to fit within the frame if necessary
+        overlay = overlay[0:y2 - y1, 0:x2 - x1]  # Crop the overlay to match the available frame area
+        alpha_overlay = overlay[:, :, 3] / 255.0  # Extract alpha channel and normalize to [0, 1]
         alpha_background = 1.0 - alpha_overlay
 
-        for c in range(3):
-            frame[y1:y2, x1:x2, c] = (alpha_overlay * overlay[:, :, c] +
-                                      alpha_background * frame[y1:y2, x1:x2, c])
-
-
+        # Perform the blending operation
+        for c in range(3):  # Loop through each color channel
+            frame[y1:y2, x1:x2, c] = (
+                    alpha_overlay * overlay[:, :, c] +
+                    alpha_background * frame[y1:y2, x1:x2, c]
+            )
 
     @staticmethod
     def send_gesture_message(self, gesture):
@@ -152,9 +168,24 @@ class GestureDetector:
         send_socket_message(gesture)
 
     @staticmethod
-    def display_text(frame, text, x, y,):
-        cv2.putText(frame, text, (x, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+    def display_text(frame, text, x, y, line_spacing=30):
+        """
+        Display multiline text on the video feed.
+
+        Args:
+            frame: The frame where text is displayed.
+            text: The text to display. Use '\n' for new lines.
+            x: X-coordinate of the text.
+            y: Y-coordinate of the text.
+            line_spacing: Spacing between two lines of text.
+        """
+        # Split the text into lines based on '\n'
+        lines = text.split('\n')
+
+        # Iterate over lines and display each one
+        for i, line in enumerate(lines):
+            cv2.putText(frame, line, (x, y + i * line_spacing),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2, cv2.LINE_AA)
 
     def run(self):
         """Start real-time gesture recognition with hand tracking."""
@@ -187,22 +218,25 @@ class GestureDetector:
             # Display detected gesture on the screen
             if self.gesture_result:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
+                gesture_text = self.gesture_texts.get(self.gesture_result, "Gesture detected!")  # Default text if no match
+
                 # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
+                    x, y = 10, 10  # Top-left corner coordinates
+                    scale = 0.2
                     # Display the corresponding gesture image in the upper-left corner of the video feed
-                    x, y = 10, 10  # Upper-left corner
-                    scale = 0.9
                     self.overlay_image(frame, gesture_image, x, y, scale)
 
                     # Display detected gesture in text
-                    self.display_text(frame=frame, text=f'Gesture: {self.gesture_result}',
-                                      x=x, y=int(y + gesture_image.shape[0] * scale) + 20)
+                    self.display_text(frame=frame, text=gesture_text,
+                                      x=x, y=y + int(gesture_image.shape[0] * scale) + 30)
 
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
                     # TODO: comment out the line below if not connected to server
                     # self.send_gesture_message(self.gesture_result)
                     last_message_time = current_time
+
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
 
