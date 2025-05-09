@@ -4,7 +4,7 @@ import time
 
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from socketMessage import send_socket_message
+from socketMessage import RobotSocketClient
 
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -21,6 +21,8 @@ class GestureDetector:
         self.gesture_result = None  # Store detected gesture
         self.last_gesture = None
         self.timestamp = 0  # Monotonic timestamp counter
+
+        self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
@@ -66,7 +68,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(1,)
+        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -129,7 +131,7 @@ class GestureDetector:
                 cv2.putText(frame, 'Detected: Middle finger', (0, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
                 # TODO: comment out the line below if not connected to server
-                # self.send_gesture_message("Middle_Finger")
+                self.send_gesture_message("Middle_Finger")
 
     def overlay_image(self, frame, overlay, x, y, scale=1.0):
         """
@@ -165,7 +167,10 @@ class GestureDetector:
     @staticmethod
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
-        send_socket_message(gesture)
+        if gesture and gesture.strip().lower() != "none":
+            self.robot_client.send_message(gesture)
+        else:
+            print("Skipping invalid gesture:", gesture)
 
     @staticmethod
     def display_text(frame, text, x, y, line_spacing=30):
@@ -196,6 +201,10 @@ class GestureDetector:
             ret, frame = self.cap.read()
             if not ret:
                 break
+
+            def display_text(text):
+                cv2.putText(frame, f'Detected: {self.gesture_result}', (0, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -234,7 +243,7 @@ class GestureDetector:
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
                     # TODO: comment out the line below if not connected to server
-                    # self.send_gesture_message(self.gesture_result)
+                    self.send_gesture_message(self.gesture_result)
                     last_message_time = current_time
 
             # Show the video feed
@@ -246,6 +255,7 @@ class GestureDetector:
 
         self.cap.release()
         cv2.destroyAllWindows()
+        self.robot_client.close()
 
 # Run the gesture detector
 if __name__ == "__main__":
