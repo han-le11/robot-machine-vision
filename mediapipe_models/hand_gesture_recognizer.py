@@ -202,10 +202,6 @@ class GestureDetector:
             if not ret:
                 break
 
-            def display_text(text):
-                cv2.putText(frame, f'Detected: {self.gesture_result}', (0, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
