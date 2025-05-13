@@ -31,12 +31,12 @@ class GestureDetector:
 
         # A dictionary that loads images for gestures
         self.gesture_images = {
-            "Closed_Fist" : cv2.imread("./pictograms/fist.png", cv2.IMREAD_UNCHANGED),
-            "Thumb_Up": cv2.imread("./pictograms/thumb_up.png", cv2.IMREAD_UNCHANGED),
-            "Thumb_Down": cv2.imread("./pictograms/thumb_down.png", cv2.IMREAD_UNCHANGED),
-            "Victory": cv2.imread("./pictograms/victory.png", cv2.IMREAD_UNCHANGED),
-            "Open_Palm": cv2.imread("./pictograms/waving.png", cv2.IMREAD_UNCHANGED),
-            "Middle_Finger": cv2.imread("./pictograms/middle_finger.png", cv2.IMREAD_UNCHANGED),
+            "Closed_Fist" : cv2.imread("./pictograms/fist.jpg", cv2.IMREAD_UNCHANGED),
+            "Thumb_Up": cv2.imread("./pictograms/thumb_up.jpg", cv2.IMREAD_UNCHANGED),
+            "Thumb_Down": cv2.imread("./pictograms/thumb_down.jpg", cv2.IMREAD_UNCHANGED),
+            "Victory": cv2.imread("./pictograms/victory.jpg", cv2.IMREAD_UNCHANGED),
+            "Open_Palm": cv2.imread("./pictograms/waving.jpg", cv2.IMREAD_UNCHANGED),
+            "Middle_Finger": cv2.imread("./pictograms/middle_finger.jpg", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
         }
 
@@ -125,30 +125,39 @@ class GestureDetector:
 
     def overlay_image(self, frame, overlay, x, y, scale=1.0):
         """
-        Overlays an image (ignoring transparency) on a frame at the specified position.
+        Overlays an image (with or without transparency) on the video feed at the specified position.
 
         Args:
             frame: The video frame (background).
-            overlay: The image to overlay (without considering transparency).
-            x, y: The top-left corner coordinates where the overlay will be placed.
+            overlay: The overlay image (can have alpha channel or black background).
+            x, y: Coordinates for the top-left corner of the overlay.
             scale: Scaling factor for the overlay image.
         """
-        # Resize the overlay image based on the scale factor
+        # Resize overlay based on scale
         overlay = cv2.resize(overlay, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
         overlay_h, overlay_w, _ = overlay.shape
 
-        # Ensure the overlay fits within the frame boundaries
+        # Get frame dimensions
         frame_h, frame_w, _ = frame.shape
+
+        # Ensure the overlay fits within the frame boundaries
         y1, y2 = max(0, y), min(frame_h, y + overlay_h)
         x1, x2 = max(0, x), min(frame_w, x + overlay_w)
 
-        # Crop the overlay and frame area if necessary
-        overlay = overlay[0:(y2 - y1), 0:(x2 - x1)]
-        roi = frame[y1:y2, x1:x2]
+        # Check for valid overlay position
+        if y1 >= y2 or x1 >= x2:
+            print(f"Overlay out of bounds: x={x}, y={y}, frame dimensions={frame.shape}")
+            return  # Skip overlay
 
-        # copy the pixel data from the overlay image into the roi (region of interest) on the frame
-        # without blending or considering transparency.
-        np.copyto(roi, overlay, casting="same_kind")
+        # Crop the overlay if necessary
+        overlay = overlay[0:y2 - y1, 0:x2 - x1]
+
+        # Copy overlay onto the frame
+        roi = frame[y1:y2, x1:x2]
+        try:
+            np.copyto(roi, overlay, casting="same_kind")
+        except Exception as e:
+            print(f"Error during overlay: {e}")
 
     @staticmethod
     def send_gesture_message(self, gesture):
@@ -209,17 +218,21 @@ class GestureDetector:
             # Display detected gesture on the screen
             if self.gesture_result:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
+                print(f"image found: {gesture_image}")
 
                 # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
-                    x, y = 10, 10  # Top-left corner coordinates
+                    print(f"Displaying image corresponding to: {self.gesture_result}")
+                    x, y = 0, 0  # Top-left corner coordinates
 
                     # Display the corresponding gesture image in the upper-left corner of the video feed
-                    self.overlay_image(frame, gesture_image, x, y, scale=0.5)
+                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.5)
 
                     # Display detected gesture in text
                     # self.display_text(frame=frame, text=gesture_text,
                     #                   x=x, y=y + int(gesture_image.shape[0] * scale) + 30)
+                else:
+                    print(f"No image found for gesture: {self.gesture_result}")
 
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
