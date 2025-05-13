@@ -8,6 +8,10 @@ from mediapipe.tasks.python import vision
 from socketMessage import RobotSocketClient
 from notification import NotificationListener
 
+from math import acos, degrees
+from numpy import array, dot
+from numpy.linalg import norm
+
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
 GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
@@ -94,7 +98,7 @@ class GestureDetector:
         # Finger landmark indices as defined by MediaPipe
         THUMB_TIP, THUMB_BASE = 4, 2
         INDEX_TIP, INDEX_BASE = 8, 6
-        MIDDLE_TIP, MIDDLE_BASE = 12, 10
+        MIDDLE_TIP, MIDDLE_DIP, MIDDLE_PIP, MIDDLE_MCP = 12, 11, 10, 9
         RING_TIP, RING_BASE = 16, 14
         PINKY_TIP, PINKY_BASE = 20, 18
 
@@ -102,19 +106,39 @@ class GestureDetector:
         # Middle finger's tip must be above its base, and other fingers' tips should be below their bases.
         def is_extended(tip, base):
             return tip.y < base.y
+        
+        def angle_between(a, b, c): # Math used to make sure that the finger is straight
+            ab = array([a.x - b.x, a.y - b.y, a.z - b.z])
+            cb = array([c.x - b.x, c.y - b.y, c.z - b.z])
+            cosine_angle = dot(ab, cb) / (norm(ab) * norm(cb))
+            return degrees(acos(cosine_angle))
 
         middle_finger_extended = is_extended(hand_landmarks.landmark[MIDDLE_TIP],
-                                             hand_landmarks.landmark[MIDDLE_BASE])
+                                             hand_landmarks.landmark[MIDDLE_PIP])
+        
         other_fingers_bent = all(
-            not is_extended(hand_landmarks.landmark[tip], hand_landmarks.landmark[base])
-            for tip, base in [
-                (THUMB_TIP, THUMB_BASE),
-                (INDEX_TIP, INDEX_BASE),
-                (RING_TIP, RING_BASE),
-                (PINKY_TIP, PINKY_BASE),
-            ]
+            hand_landmarks.landmark[landmark].y > hand_landmarks.landmark[MIDDLE_PIP].y
+            for landmark in [THUMB_BASE, INDEX_BASE, RING_BASE, PINKY_BASE, THUMB_TIP, INDEX_TIP, RING_TIP, PINKY_TIP]
         )
-        return middle_finger_extended and other_fingers_bent
+
+        # Variable definitions for logic
+        mcp = hand_landmarks.landmark[MIDDLE_MCP]
+        pip = hand_landmarks.landmark[MIDDLE_PIP]
+        dip = hand_landmarks.landmark[MIDDLE_DIP]
+        tip = hand_landmarks.landmark[MIDDLE_TIP]
+
+        # Middle finger pointing up logic
+        finger_vector = array([tip.x - mcp.x, tip.y - mcp.y, tip.z - mcp.z])
+        angle0 = degrees(acos(dot(finger_vector, [0, -1, 0]) / norm(finger_vector)))
+        middle_finger_pointing_up = angle0 < 10
+
+        # Middle finger straight logic
+        angle1 = angle_between(mcp, pip, dip)
+        angle2 = angle_between(pip, dip, tip)
+
+        middle_finger_straight = angle1 > 175 and angle2 > 175  # The integers represent the angle of the finger as calculated from the landmarks
+
+        return middle_finger_extended and other_fingers_bent and middle_finger_straight and middle_finger_pointing_up
 
     def draw_hand_skeleton(self, frame, hand_landmarks) -> None:
         """Draw the hand skeleton using MediaPipe landmarks."""
