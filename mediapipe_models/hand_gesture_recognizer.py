@@ -6,6 +6,7 @@ import time
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from socketMessage import RobotSocketClient
+from notification import NotificationListener
 
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -20,10 +21,27 @@ class GestureDetector:
         """Initialize the GestureDetector with the given model path."""
         self.model_path = model_path
         self.gesture_result = None  # Store detected gesture
-        self.last_gesture = None
+        self.last_gesture_sent = None
         self.timestamp = 0  # Monotonic timestamp counter
 
+        def _on_notify(msg: str):
+            # msg will be like "START_Thumb_Up" or "END_Thumb_Up"
+            print("[RAPID→Python]", msg)
+            if msg.startswith("START_"):
+                self.doing_action = True
+            elif msg.startswith("END_"):
+                self.doing_action = False
+
+        self.doing_action = False
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
+        self.notifier = NotificationListener(
+                            host="192.168.125.1",
+                            port=5001,
+                            on_message=_on_notify,
+                            retry_delay=1.0,
+                            recv_timeout=0.1,
+                            delimiter="|"   # or "\n" if RAPID uses newline
+                        )
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
@@ -39,6 +57,8 @@ class GestureDetector:
             "Middle_Finger": cv2.imread("./pictograms/middle_finger.jpg", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
         }
+
+        self.hands = self.mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5)
 
         # Define callback function
         def result_callback(result, output_image, timestamp_ms):
@@ -58,7 +78,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(1, )
+        self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -162,10 +182,13 @@ class GestureDetector:
     @staticmethod
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
-        if gesture and gesture.strip().lower() != "none":
+        if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down" and gesture == "Thumb_Up") or not self.doing_action):
+            self.last_gesture_sent = gesture
             self.robot_client.send_message(gesture)
-        else:
+        elif gesture.strip().lower() == "none":
             print("Skipping invalid gesture:", gesture)
+        else:
+            print("Robot is already doing action")
 
     @staticmethod
     def display_text(frame, text, x, y, line_spacing=30):
@@ -237,8 +260,8 @@ class GestureDetector:
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
                     # TODO: comment out the line below if not connected to server
+                    self.send_gesture_message(self.gesture_result)
                     last_message_time = current_time
-
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
 
@@ -249,6 +272,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
+        self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
