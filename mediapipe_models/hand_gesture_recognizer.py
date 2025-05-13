@@ -26,10 +26,8 @@ class GestureDetector:
             print("[RAPID→Python]", msg)
             if msg.startswith("START_"):
                 self.doing_action = True
-                print("HEEEEEEEEEEEERE", self.doing_action)
             elif msg.startswith("END_"):
                 self.doing_action = False
-                print("HEEEEEEEEEEEERE", self.doing_action)
 
         self.doing_action = False
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
