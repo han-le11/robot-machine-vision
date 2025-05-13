@@ -18,14 +18,25 @@ class GestureDetector:
         """Initialize the GestureDetector with the given model path."""
         self.model_path = model_path
         self.gesture_result = None  # Store detected gesture
-        self.last_gesture = None
+        self.last_gesture_sent = None
         self.timestamp = 0  # Monotonic timestamp counter
 
+        def _on_notify(msg: str):
+            # msg will be like "START_Thumb_Up" or "END_Thumb_Up"
+            print("[RAPID→Python]", msg)
+            if msg.startswith("START_"):
+                self.doing_action = True
+                print("HEEEEEEEEEEEERE", self.doing_action)
+            elif msg.startswith("END_"):
+                self.doing_action = False
+                print("HEEEEEEEEEEEERE", self.doing_action)
+
+        self.doing_action = False
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
         self.notifier = NotificationListener(
                             host="192.168.125.1",
                             port=5001,
-                            on_message=lambda msg: print("[RAPID→Python]", msg),
+                            on_message=_on_notify,
                             retry_delay=1.0,
                             recv_timeout=0.1,
                             delimiter="|"   # or "\n" if RAPID uses newline
@@ -34,7 +45,7 @@ class GestureDetector:
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5)
-
+        
         # Define callback function
         def result_callback(result, output_image, timestamp_ms):
             """Callback function to handle gesture recognition results."""
@@ -120,10 +131,13 @@ class GestureDetector:
 
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
-        if gesture and gesture.strip().lower() != "none":
+        if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down" and gesture == "Thumb_Up") or not self.doing_action):
+            self.last_gesture_sent = gesture
             self.robot_client.send_message(gesture)
-        else:
+        elif gesture.strip().lower() == "none":
             print("Skipping invalid gesture:", gesture)
+        else:
+            print("Robot is already doing action")
 
     def run(self):
         """Start real-time gesture recognition with hand tracking."""
