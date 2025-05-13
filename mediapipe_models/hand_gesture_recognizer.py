@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import numpy as np
 import time
 
 from mediapipe.tasks import python
@@ -26,28 +27,17 @@ class GestureDetector:
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5)
+        self.hands = self.mp_hands.Hands(min_detection_confidence=0.75, min_tracking_confidence=0.6)
 
         # A dictionary that loads images for gestures
         self.gesture_images = {
             "Closed_Fist" : cv2.imread("./pictograms/fist.png", cv2.IMREAD_UNCHANGED),
-            "Middle_Finger": cv2.imread("./pictograms/middle_finger.png", cv2.IMREAD_UNCHANGED),
             "Thumb_Up": cv2.imread("./pictograms/thumb_up.png", cv2.IMREAD_UNCHANGED),
             "Thumb_Down": cv2.imread("./pictograms/thumb_down.png", cv2.IMREAD_UNCHANGED),
             "Victory": cv2.imread("./pictograms/victory.png", cv2.IMREAD_UNCHANGED),
-            "Waving": cv2.imread("./pictograms/waving.png", cv2.IMREAD_UNCHANGED),
+            "Open_Palm": cv2.imread("./pictograms/waving.png", cv2.IMREAD_UNCHANGED),
+            "Middle_Finger": cv2.imread("./pictograms/middle_finger.png", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
-        }
-
-        self.gesture_texts = {
-            "Closed_Fist": "Did you just threaten me?!",
-            "Middle finger": "That's not really nice of you!",
-            "Thumb_Down": "Thumb down?!\n"
-                          "I'm sad and don't want to do anything anymore!\n",
-            "Thumb_Up": "Human's sign of approval! I'm glad!",
-            "Victory": "I don't know how to mimic that,\n"
-                       "but it must mean positive",
-            "Waving": "Hi! Does human wave to say hi? What's up?",
         }
 
         # Define callback function
@@ -68,7 +58,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(1, )
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -131,15 +121,15 @@ class GestureDetector:
                 cv2.putText(frame, 'Detected: Middle finger', (0, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
                 # TODO: comment out the line below if not connected to server
-                self.send_gesture_message("Middle_Finger")
+                # self.send_gesture_message("Middle_Finger")
 
     def overlay_image(self, frame, overlay, x, y, scale=1.0):
         """
-        Overlays a transparent image (with alpha channel) on a frame at the specified position.
+        Overlays an image (ignoring transparency) on a frame at the specified position.
 
         Args:
-            frame: The video frame (background) on which to overlay.
-            overlay: The transparent image to overlay (must have 4 channels, including alpha).
+            frame: The video frame (background).
+            overlay: The image to overlay (without considering transparency).
             x, y: The top-left corner coordinates where the overlay will be placed.
             scale: Scaling factor for the overlay image.
         """
@@ -152,17 +142,13 @@ class GestureDetector:
         y1, y2 = max(0, y), min(frame_h, y + overlay_h)
         x1, x2 = max(0, x), min(frame_w, x + overlay_w)
 
-        # Crop the overlay and alpha channel to fit within the frame if necessary
-        overlay = overlay[0:y2 - y1, 0:x2 - x1]  # Crop the overlay to match the available frame area
-        alpha_overlay = overlay[:, :, 3] / 255.0  # Extract alpha channel and normalize to [0, 1]
-        alpha_background = 1.0 - alpha_overlay
+        # Crop the overlay and frame area if necessary
+        overlay = overlay[0:(y2 - y1), 0:(x2 - x1)]
+        roi = frame[y1:y2, x1:x2]
 
-        # Perform the blending operation
-        for c in range(3):  # Loop through each color channel
-            frame[y1:y2, x1:x2, c] = (
-                    alpha_overlay * overlay[:, :, c] +
-                    alpha_background * frame[y1:y2, x1:x2, c]
-            )
+        # copy the pixel data from the overlay image into the roi (region of interest) on the frame
+        # without blending or considering transparency.
+        np.copyto(roi, overlay, casting="same_kind")
 
     @staticmethod
     def send_gesture_message(self, gesture):
@@ -223,23 +209,21 @@ class GestureDetector:
             # Display detected gesture on the screen
             if self.gesture_result:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
-                gesture_text = self.gesture_texts.get(self.gesture_result, "Gesture detected!")  # Default text if no match
 
                 # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
                     x, y = 10, 10  # Top-left corner coordinates
-                    scale = 0.2
+
                     # Display the corresponding gesture image in the upper-left corner of the video feed
-                    self.overlay_image(frame, gesture_image, x, y, scale)
+                    self.overlay_image(frame, gesture_image, x, y, scale=0.5)
 
                     # Display detected gesture in text
-                    self.display_text(frame=frame, text=gesture_text,
-                                      x=x, y=y + int(gesture_image.shape[0] * scale) + 30)
+                    # self.display_text(frame=frame, text=gesture_text,
+                    #                   x=x, y=y + int(gesture_image.shape[0] * scale) + 30)
 
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
                     # TODO: comment out the line below if not connected to server
-                    self.send_gesture_message(self.gesture_result)
                     last_message_time = current_time
 
             # Show the video feed
