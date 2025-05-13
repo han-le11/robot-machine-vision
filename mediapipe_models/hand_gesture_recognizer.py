@@ -35,7 +35,7 @@ class GestureDetector:
             "Thumb_Up": cv2.imread("./pictograms/thumb_up.jpg", cv2.IMREAD_UNCHANGED),
             "Thumb_Down": cv2.imread("./pictograms/thumb_down.jpg", cv2.IMREAD_UNCHANGED),
             "Victory": cv2.imread("./pictograms/victory.jpg", cv2.IMREAD_UNCHANGED),
-            "Open_Palm": cv2.imread("./pictograms/waving.jpg", cv2.IMREAD_UNCHANGED),
+            "Open_Palm": cv2.imread("./pictograms/wave.jpg", cv2.IMREAD_UNCHANGED),
             "Middle_Finger": cv2.imread("./pictograms/middle_finger.jpg", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
         }
