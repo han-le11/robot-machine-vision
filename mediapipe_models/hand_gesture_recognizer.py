@@ -5,6 +5,7 @@ import time
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from socketMessage import RobotSocketClient
+from notification import NotificationListener
 
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -21,6 +22,14 @@ class GestureDetector:
         self.timestamp = 0  # Monotonic timestamp counter
 
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
+        self.notifier = NotificationListener(
+                            host="192.168.125.1",
+                            port=5001,
+                            on_message=lambda msg: print("[RAPID→Python]", msg),
+                            retry_delay=1.0,
+                            recv_timeout=0.1,
+                            delimiter="|"   # or "\n" if RAPID uses newline
+                        )
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
@@ -44,7 +53,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -166,6 +175,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
+        self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
