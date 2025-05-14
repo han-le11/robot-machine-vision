@@ -82,7 +82,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -203,8 +203,9 @@ class GestureDetector:
         except Exception as e:
             print(f"Error during overlay: {e}")
 
-    @staticmethod
-    def send_gesture_message(self, gesture):
+    def send_gesture_message(self):
+        gesture = self.gesture_result
+        print(gesture)
         """Send socket message only if gesture has changed."""
         if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down" and gesture == "Thumb_Up") or not self.doing_action):
             self.last_gesture_sent = gesture
@@ -272,7 +273,7 @@ class GestureDetector:
                     x, y = 0, 0  # Top-left corner coordinates
 
                     # Display the corresponding gesture image in the upper-left corner of the video feed
-                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.5)
+                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
 
                     # Display detected gesture in text
                     # self.display_text(frame=frame, text=gesture_text,
@@ -283,7 +284,7 @@ class GestureDetector:
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
                     # TODO: comment out the line below if not connected to server
-                    self.send_gesture_message(self.gesture_result)
+                    self.send_gesture_message()
                     last_message_time = current_time
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
