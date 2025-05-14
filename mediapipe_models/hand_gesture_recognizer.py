@@ -59,6 +59,7 @@ class GestureDetector:
             "Victory": cv2.imread("./pictograms/victory.jpg", cv2.IMREAD_UNCHANGED),
             "Open_Palm": cv2.imread("./pictograms/wave.jpg", cv2.IMREAD_UNCHANGED),
             "Middle_Finger": cv2.imread("./pictograms/middle_finger.jpg", cv2.IMREAD_UNCHANGED),
+            "None": cv2.imread("./pictograms/none.jpg", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
         }
 
@@ -167,6 +168,7 @@ class GestureDetector:
             if self.detect_middle_finger(landmarks):
                 self.gesture_result = "Middle_Finger"
 
+
     def overlay_image(self, frame, overlay, x, y, scale=1.0):
         """
         Overlays an image (with or without transparency) on the video feed at the specified position.
@@ -264,17 +266,14 @@ class GestureDetector:
             self.recognizer.recognize_async(mp_image, self.timestamp)
 
             current_time = time.time()
+            x, y = 0, 0  # Top-left corner coordinates
             # Display detected gesture on the screen
             if self.gesture_result:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
-
                 # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
-                    print(f"Displaying image corresponding to: {self.gesture_result}")
-                    x, y = 0, 0  # Top-left corner coordinates
-
                     # Display the corresponding gesture image in the upper-left corner of the video feed
-                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
+                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.5)
 
                     # Display detected gesture in text
                     # self.display_text(frame=frame, text=gesture_text,
@@ -287,6 +286,10 @@ class GestureDetector:
                     # TODO: comment out the line below if not connected to server
                     self.send_gesture_message()
                     last_message_time = current_time
+            else:
+                blank_screen = self.gesture_images.get("None")
+                self.overlay_image(frame=frame, overlay=blank_screen, x=x, y=y, scale=0.5)
+
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
 
@@ -297,7 +300,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
-        self.notifier.stop()
+        # self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
