@@ -207,9 +207,9 @@ class GestureDetector:
             print(f"Error during overlay: {e}")
 
     @staticmethod
-    def display_text(frame, text, margin=20, line_spacing=30):
+    def display_text(frame, text, x=10, y=30, margin=30, line_spacing=30):
         """
-        Display multiline text in the top-right corner of the video feed, aligned to the right.
+        Display multiline text in the top-right corner of the video feed, aligned to the left.
 
         Args:
             frame: The frame where text is displayed.
@@ -221,23 +221,21 @@ class GestureDetector:
         """
         # Split the text into lines based on '\n'
         lines = text.split('\n')
-        frame_h, frame_w, _ = frame.shape  # Get frame dimensions
-        x = frame_w - margin  # Start from the right margin
 
         for i, line in enumerate(lines):
-            text_size = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
-            text_x = x - text_size[0]  # Align text to the right
-            text_y = margin + i * line_spacing
-            cv2.putText(frame, line, (text_x, text_y),
+            # text_size = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
+            text_y = y + i * line_spacing
+            cv2.putText(frame, line, (x, text_y),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
     def send_gesture_message(self):
         gesture = self.gesture_result
+        gesture_text = self.gesture_result.strip().lower()
         """Send socket message only if gesture has changed."""
         if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down" and gesture == "Thumb_Up") or not self.doing_action):
             self.last_gesture_sent = gesture
             self.robot_client.send_message(gesture)
-        elif gesture.strip().lower() == "none":
+        elif gesture_text == "none" or gesture_text == "pointing_up" or gesture_text == "iloveyou":
             print("Skipping invalid gesture:", gesture)
         else:
             print("Robot is already doing action")
@@ -276,6 +274,7 @@ class GestureDetector:
             x, y = 0, 0  # Top-left corner coordinates
             # Display detected gesture on the screen
             if self.gesture_result and self.doing_action:
+                print(self.gesture_result)
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
                 if gesture_image is not None:
                     self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
@@ -285,7 +284,6 @@ class GestureDetector:
                                       )
 
                 if current_time - last_message_time >= 1.5:
-                    print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
                     # TODO: comment out the line below if not connected to server
                     self.send_gesture_message()
                     last_message_time = current_time

@@ -49,10 +49,3 @@ class RobotSocketClient:
             self.sock.close()
             self.sock = None
             print("Connection closed.")
-
-# Usage example
-client = RobotSocketClient()
-
-def handle_gesture(gesture):
-    if gesture:  # skip None
-        client.send_message(gesture + "\n")
