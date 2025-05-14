@@ -49,7 +49,7 @@ class GestureDetector:
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(min_detection_confidence=0.75, min_tracking_confidence=0.6)
+        self.hands = self.mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.6)
 
         # A dictionary that loads images for gestures
         self.gesture_images = {
@@ -62,8 +62,6 @@ class GestureDetector:
             "None": cv2.imread("./pictograms/none.jpg", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
         }
-
-        self.hands = self.mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5)
 
         # Define callback function
         def result_callback(result, output_image, timestamp_ms):
@@ -232,7 +230,9 @@ class GestureDetector:
         gesture = self.gesture_result
         gesture_text = self.gesture_result.strip().lower()
         """Send socket message only if gesture has changed."""
-        if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down" and gesture == "Thumb_Up") or not self.doing_action):
+        if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down"
+                                                               and gesture == "Thumb_Up")
+                                                              or not self.doing_action):
             self.last_gesture_sent = gesture
             self.robot_client.send_message(gesture)
         elif gesture_text == "none" or gesture_text == "pointing_up" or gesture_text == "iloveyou":
@@ -260,8 +260,6 @@ class GestureDetector:
             # Draw hand skeleton if detected hand(s)
             if hand_results.multi_hand_landmarks:
                 self.draw_hand_skeleton(frame, hand_results.multi_hand_landmarks)
-            else:
-                print("No hand landmarks detected.")
 
             # Convert to MediaPipe Image format for gesture recognition
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
@@ -272,8 +270,9 @@ class GestureDetector:
 
             current_time = time.time()
             x, y = 0, 0  # Top-left corner coordinates
+
             # Display detected gesture on the screen
-            if self.gesture_result and self.doing_action:
+            if self.gesture_result is not None and self.doing_action:
                 print(self.gesture_result)
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
                 if gesture_image is not None:
