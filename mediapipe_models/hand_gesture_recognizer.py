@@ -252,6 +252,7 @@ class GestureDetector:
             if not ret:
                 break
 
+            frame = cv2.flip(frame, 1)
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 

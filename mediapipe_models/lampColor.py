@@ -2,7 +2,7 @@
 import requests
 
 #ESP32_IP = "http://192.168.195.233" # Test board
-ESP32_IP = "http://192.168.195.9" # Arduino board at school
+ESP32_IP = "http://130.233.246.89" # Arduino board at school
 
 # List of commands that can be sent ["RED", "GREEN", "BLUE", "EXIT"]
 
