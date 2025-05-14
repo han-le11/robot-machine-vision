@@ -138,7 +138,10 @@ class GestureDetector:
 
         middle_finger_straight = angle1 > 175 and angle2 > 175  # The integers represent the angle of the finger as calculated from the landmarks
 
-        return middle_finger_extended and other_fingers_bent and middle_finger_straight and middle_finger_pointing_up
+        return (middle_finger_extended and
+                other_fingers_bent and
+                middle_finger_straight and
+                middle_finger_pointing_up)
 
     def draw_hand_skeleton(self, frame, hand_landmarks) -> None:
         """Draw the hand skeleton using MediaPipe landmarks."""
@@ -162,10 +165,7 @@ class GestureDetector:
 
             # Detect if the middle finger gesture is present
             if self.detect_middle_finger(landmarks):
-                cv2.putText(frame, 'Detected: Middle finger', (0, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-                # TODO: comment out the line below if not connected to server
-                # self.send_gesture_message("Middle_Finger")
+                self.gesture_result = "Middle_Finger"
 
     def overlay_image(self, frame, overlay, x, y, scale=1.0):
         """
@@ -250,7 +250,7 @@ class GestureDetector:
             # Detect hand landmarks
             hand_results = self.hands.process(frame_rgb)
 
-            # Draw hand skeleton if detected
+            # Draw hand skeleton if detected hand(s)
             if hand_results.multi_hand_landmarks:
                 self.draw_hand_skeleton(frame, hand_results.multi_hand_landmarks)
 
@@ -265,7 +265,6 @@ class GestureDetector:
             # Display detected gesture on the screen
             if self.gesture_result:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
-                print(f"image found: {gesture_image}")
 
                 # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
