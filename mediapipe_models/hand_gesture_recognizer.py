@@ -25,7 +25,7 @@ class GestureDetector:
         """Initialize the GestureDetector with the given model path."""
         self.model_path = model_path
         self.gesture_result = None  # Store detected gesture
-        self.last_gesture_sent = None
+        self.last_gesture_sent = None # The gesture that was last sent to the robot
         self.timestamp = 0  # Monotonic timestamp counter
 
         def _on_notify(msg: str):
@@ -162,21 +162,22 @@ class GestureDetector:
             # Draw hand keypoints in red
             for landmark in landmarks.landmark:
                 x, y = int(landmark.x * w), int(landmark.y * h)
-                cv2.circle(frame, (x, y), 5, (0, 0, 128), -1)
+                cv2.circle(frame, (x, y), 4, (0, 0, 128), -1)
 
             # Detect if the middle finger gesture is present
             if self.detect_middle_finger(landmarks):
                 self.gesture_result = "Middle_Finger"
 
-
-    def overlay_image(self, frame, overlay, x, y, scale=1.0):
+    @staticmethod
+    def overlay_image(frame, overlay, x=0, y=0, scale=1.0):
         """
         Overlays an image (with or without transparency) on the video feed at the specified position.
 
         Args:
             frame: The video frame (background).
             overlay: The overlay image (can have alpha channel or black background).
-            x, y: Coordinates for the top-left corner of the overlay.
+            x: x-coordinate for the top-left corner of the overlay.
+            y: y-coordinate for the top-left corner of the overlay.
             scale: Scaling factor for the overlay image.
         """
         # Resize overlay based on scale
@@ -205,9 +206,33 @@ class GestureDetector:
         except Exception as e:
             print(f"Error during overlay: {e}")
 
+    @staticmethod
+    def display_text(frame, text, margin=20, line_spacing=30):
+        """
+        Display multiline text in the top-right corner of the video feed, aligned to the right.
+
+        Args:
+            frame: The frame where text is displayed.
+            text: The text to display. Use '\n' for new lines.
+            x: X-coordinate of the text.
+            y: Y-coordinate of the text.
+            line_spacing: Spacing between two lines of text.
+            align: Alignment of the text ('left' or 'right').
+        """
+        # Split the text into lines based on '\n'
+        lines = text.split('\n')
+        frame_h, frame_w, _ = frame.shape  # Get frame dimensions
+        x = frame_w - margin  # Start from the right margin
+
+        for i, line in enumerate(lines):
+            text_size = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
+            text_x = x - text_size[0]  # Align text to the right
+            text_y = margin + i * line_spacing
+            cv2.putText(frame, line, (text_x, text_y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
+
     def send_gesture_message(self):
         gesture = self.gesture_result
-        print(gesture)
         """Send socket message only if gesture has changed."""
         if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down" and gesture == "Thumb_Up") or not self.doing_action):
             self.last_gesture_sent = gesture
@@ -216,26 +241,6 @@ class GestureDetector:
             print("Skipping invalid gesture:", gesture)
         else:
             print("Robot is already doing action")
-
-    @staticmethod
-    def display_text(frame, text, x, y, line_spacing=30):
-        """
-        Display multiline text on the video feed.
-
-        Args:
-            frame: The frame where text is displayed.
-            text: The text to display. Use '\n' for new lines.
-            x: X-coordinate of the text.
-            y: Y-coordinate of the text.
-            line_spacing: Spacing between two lines of text.
-        """
-        # Split the text into lines based on '\n'
-        lines = text.split('\n')
-
-        # Iterate over lines and display each one
-        for i, line in enumerate(lines):
-            cv2.putText(frame, line, (x, y + i * line_spacing),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2, cv2.LINE_AA)
 
     def run(self):
         """Start real-time gesture recognition with hand tracking."""
@@ -256,6 +261,8 @@ class GestureDetector:
             # Draw hand skeleton if detected hand(s)
             if hand_results.multi_hand_landmarks:
                 self.draw_hand_skeleton(frame, hand_results.multi_hand_landmarks)
+            else:
+                print("No hand landmarks detected.")
 
             # Convert to MediaPipe Image format for gesture recognition
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
@@ -267,18 +274,14 @@ class GestureDetector:
             current_time = time.time()
             x, y = 0, 0  # Top-left corner coordinates
             # Display detected gesture on the screen
-            if self.gesture_result:
+            if self.gesture_result and self.doing_action:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
-                # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
-                    # Display the corresponding gesture image in the upper-left corner of the video feed
-                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.5)
-
-                    # Display detected gesture in text
-                    # self.display_text(frame=frame, text=gesture_text,
-                    #                   x=x, y=y + int(gesture_image.shape[0] * scale) + 30)
-                else:
-                    print(f"No image found for gesture: {self.gesture_result}")
+                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
+                    self.display_text(frame=frame,
+                                      text=f"Wait! Robot is answering to your gesture: \n"
+                                           f"{self.last_gesture_sent}",
+                                      )
 
                 if current_time - last_message_time >= 1.5:
                     print(self.gesture_result + " lasts at least 1.5s. Sending message to robot.")
@@ -286,10 +289,11 @@ class GestureDetector:
                     self.send_gesture_message()
                     last_message_time = current_time
             else:
+                # Always display blank screen to avoid flickering time
                 blank_screen = self.gesture_images.get("None")
-                self.overlay_image(frame=frame, overlay=blank_screen, x=x, y=y, scale=0.5)
+                self.overlay_image(frame=frame, overlay=blank_screen, x=x, y=y, scale=0.4)
 
-            # Show the video feed
+            # Show the video feed flipped horizontally
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
 
             # Exit on pressing 'q'
@@ -299,7 +303,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
-        # self.notifier.stop()
+        self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
