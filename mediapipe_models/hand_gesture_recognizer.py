@@ -18,6 +18,44 @@ GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
 GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+
+def overlay_image(frame, overlay, x, y, scale=1.0):
+    """
+    Overlays an image (with or without transparency) on the video feed at the specified position.
+
+    Args:
+        frame: The video frame (background).
+        overlay: The overlay image (can have alpha channel or black background).
+        x, y: Coordinates for the top-left corner of the overlay.
+        scale: Scaling factor for the overlay image.
+    """
+    # Resize overlay based on scale
+    overlay = cv2.resize(overlay, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    overlay_h, overlay_w, _ = overlay.shape
+
+    # Get frame dimensions
+    frame_h, frame_w, _ = frame.shape
+
+    # Ensure the overlay fits within the frame boundaries
+    y1, y2 = max(0, y), min(frame_h, y + overlay_h)
+    x1, x2 = max(0, x), min(frame_w, x + overlay_w)
+
+    # Check for valid overlay position
+    if y1 >= y2 or x1 >= x2:
+        print(f"Overlay out of bounds: x={x}, y={y}, frame dimensions={frame.shape}")
+        return  # Skip overlay
+
+    # Crop the overlay if necessary
+    overlay = overlay[0:y2 - y1, 0:x2 - x1]
+
+    # Copy overlay onto the frame
+    roi = frame[y1:y2, x1:x2]
+    try:
+        np.copyto(roi, overlay, casting="same_kind")
+    except Exception as e:
+        print(f"Error during overlay: {e}")
+
+
 class GestureDetector:
     def __init__(self,
                  model_path="mediapipe_models/gesture_recognizer.task",
@@ -59,6 +97,7 @@ class GestureDetector:
             "Victory": cv2.imread("./pictograms/victory.jpg", cv2.IMREAD_UNCHANGED),
             "Open_Palm": cv2.imread("./pictograms/wave.jpg", cv2.IMREAD_UNCHANGED),
             "Middle_Finger": cv2.imread("./pictograms/middle_finger.jpg", cv2.IMREAD_UNCHANGED),
+            "None": cv2.imread("./pictograms/none.jpg", cv2.IMREAD_UNCHANGED),
             # Add more gestures and images as needed
         }
 
@@ -167,42 +206,6 @@ class GestureDetector:
             if self.detect_middle_finger(landmarks):
                 self.gesture_result = "Middle_Finger"
 
-    def overlay_image(self, frame, overlay, x, y, scale=1.0):
-        """
-        Overlays an image (with or without transparency) on the video feed at the specified position.
-
-        Args:
-            frame: The video frame (background).
-            overlay: The overlay image (can have alpha channel or black background).
-            x, y: Coordinates for the top-left corner of the overlay.
-            scale: Scaling factor for the overlay image.
-        """
-        # Resize overlay based on scale
-        overlay = cv2.resize(overlay, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
-        overlay_h, overlay_w, _ = overlay.shape
-
-        # Get frame dimensions
-        frame_h, frame_w, _ = frame.shape
-
-        # Ensure the overlay fits within the frame boundaries
-        y1, y2 = max(0, y), min(frame_h, y + overlay_h)
-        x1, x2 = max(0, x), min(frame_w, x + overlay_w)
-
-        # Check for valid overlay position
-        if y1 >= y2 or x1 >= x2:
-            print(f"Overlay out of bounds: x={x}, y={y}, frame dimensions={frame.shape}")
-            return  # Skip overlay
-
-        # Crop the overlay if necessary
-        overlay = overlay[0:y2 - y1, 0:x2 - x1]
-
-        # Copy overlay onto the frame
-        roi = frame[y1:y2, x1:x2]
-        try:
-            np.copyto(roi, overlay, casting="same_kind")
-        except Exception as e:
-            print(f"Error during overlay: {e}")
-
     @staticmethod
     def send_gesture_message(self, gesture):
         """Send socket message only if gesture has changed."""
@@ -262,21 +265,14 @@ class GestureDetector:
             self.recognizer.recognize_async(mp_image, self.timestamp)
 
             current_time = time.time()
+            x, y = 0, 0  # Top-left corner coordinates
             # Display detected gesture on the screen
             if self.gesture_result:
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
-
                 # Check if the detected gesture has a corresponding image
                 if gesture_image is not None:
-                    print(f"Displaying image corresponding to: {self.gesture_result}")
-                    x, y = 0, 0  # Top-left corner coordinates
-
                     # Display the corresponding gesture image in the upper-left corner of the video feed
-                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.5)
-
-                    # Display detected gesture in text
-                    # self.display_text(frame=frame, text=gesture_text,
-                    #                   x=x, y=y + int(gesture_image.shape[0] * scale) + 30)
+                    overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.5)
                 else:
                     print(f"No image found for gesture: {self.gesture_result}")
 
@@ -285,6 +281,10 @@ class GestureDetector:
                     # TODO: comment out the line below if not connected to server
                     self.send_gesture_message(self.gesture_result)
                     last_message_time = current_time
+            else:
+                blank_screen = self.gesture_images.get("None")
+                overlay_image(frame=frame, overlay=blank_screen, x=x, y=y, scale=0.5)
+
             # Show the video feed
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
 
@@ -295,7 +295,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
-        self.notifier.stop()
+        # self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
