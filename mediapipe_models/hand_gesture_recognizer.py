@@ -224,7 +224,7 @@ class GestureDetector:
             # text_size = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
             text_y = y + i * line_spacing
             cv2.putText(frame, line, (x, text_y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def send_gesture_message(self):
         gesture = self.gesture_result
@@ -272,13 +272,14 @@ class GestureDetector:
             x, y = 0, 0  # Top-left corner coordinates
 
             # Display detected gesture on the screen
-            if self.gesture_result is not None and self.doing_action:
+            if self.gesture_result is not None:
                 print(self.gesture_result)
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
                 if gesture_image is not None:
                     self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
                     self.display_text(frame=frame,
-                                      text=f"Wait! Robot is answering to your gesture: \n"
+                                      text=f"Wait! Robot is answering \n"
+                                           f"to your gesture: \n"
                                            f"{self.last_gesture_sent}",
                                       )
 
