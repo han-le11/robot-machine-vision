@@ -39,13 +39,13 @@ class GestureDetector:
         self.doing_action = False
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
         self.notifier = NotificationListener(
-                            host="192.168.125.1",
-                            port=5001,
-                            on_message=_on_notify,
-                            retry_delay=1.0,
-                            recv_timeout=0.1,
-                            delimiter="|"   # or "\n" if RAPID uses newline
-                        )
+                           host="192.168.125.1",
+                           port=5001,
+                           on_message=_on_notify,
+                           retry_delay=1.0,
+                           recv_timeout=0.1,
+                           delimiter="|"   # or "\n" if RAPID uses newline
+                       )
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
