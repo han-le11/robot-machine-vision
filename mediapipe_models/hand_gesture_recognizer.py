@@ -38,14 +38,14 @@ class GestureDetector:
 
         self.doing_action = False
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
-        # self.notifier = NotificationListener(
-        #                     host="192.168.125.1",
-        #                     port=5001,
-        #                     on_message=_on_notify,
-        #                     retry_delay=1.0,
-        #                     recv_timeout=0.1,
-        #                     delimiter="|"   # or "\n" if RAPID uses newline
-        #                 )
+        self.notifier = NotificationListener(
+                            host="192.168.125.1",
+                            port=5001,
+                            on_message=_on_notify,
+                            retry_delay=1.0,
+                            recv_timeout=0.1,
+                            delimiter="|"   # or "\n" if RAPID uses newline
+                        )
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
@@ -294,7 +294,7 @@ class GestureDetector:
 
                 if current_time - last_message_time >= 1.5:
                     # TODO: comment out the line below if not connected to server
-                    #self.send_gesture_message()
+                    self.send_gesture_message()
                     last_message_time = current_time
             else:
                 # Always display blank screen to avoid flickering time
@@ -311,7 +311,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
-        #self.notifier.stop()
+        self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
