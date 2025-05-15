@@ -272,7 +272,7 @@ class GestureDetector:
             x, y = 0, 0  # Top-left corner coordinates
 
             # Display detected gesture on the screen
-            if self.gesture_result is not None and self.doing_action:
+            if self.gesture_result is not None:
                 print(self.gesture_result)
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
                 if gesture_image is not None:
