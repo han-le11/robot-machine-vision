@@ -49,7 +49,7 @@ class GestureDetector:
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.6)
+        self.hands = self.mp_hands.Hands(min_detection_confidence=0.75, min_tracking_confidence=0.5)
 
         # A dictionary that loads images for gestures
         self.gesture_images = {
@@ -81,7 +81,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(0,)
+        self.cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -236,12 +236,14 @@ class GestureDetector:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
 
     def send_gesture_message(self):
+        print("trying send")
         gesture = self.gesture_result
         gesture_text = self.gesture_result.strip().lower()
         """Send socket message only if gesture has changed."""
         if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down"
                                                                and gesture == "Thumb_Up")
                                                               or not self.doing_action):
+            print("sending valid gesture")
             self.last_gesture_sent = gesture
             self.robot_client.send_message(gesture)
         elif gesture_text == "none" or gesture_text == "pointing_up" or gesture_text == "iloveyou":
@@ -260,6 +262,15 @@ class GestureDetector:
                 break
 
             frame = cv2.flip(frame, 1)
+
+            # 1) figure out overlay size
+            overlay = self.gesture_images.get(self.gesture_result or "None")
+            oh, ow = overlay.shape[:2]
+            oh = int(oh * 0.3); ow = int(ow * 0.3)
+
+            # 2) mask it out
+            frame[0:oh, 0:ow] = 0
+
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -285,7 +296,7 @@ class GestureDetector:
                 print(self.gesture_result)
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
                 if gesture_image is not None:
-                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.3)
+                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
                     self.display_text(frame=frame,
                                       text=f"Wait! I'm answering \n"
                                            f"to your gesture: \n"
@@ -299,7 +310,7 @@ class GestureDetector:
             else:
                 # Always display blank screen to avoid flickering time
                 blank_screen = self.gesture_images.get("None")
-                self.overlay_image(frame=frame, overlay=blank_screen, x=x, y=y, scale=0.3)
+                self.overlay_image(frame=frame, overlay=blank_screen, x=x, y=y, scale=0.4)
 
             # Show the video feed flipped horizontally
             cv2.imshow("Gesture Recognition with Hand Tracking", frame)
