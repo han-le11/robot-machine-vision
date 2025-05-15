@@ -38,14 +38,14 @@ class GestureDetector:
 
         self.doing_action = False
         self.robot_client = RobotSocketClient(host="192.168.125.1", port=5000)
-        self.notifier = NotificationListener(
-                            host="192.168.125.1",
-                            port=5001,
-                            on_message=_on_notify,
-                            retry_delay=1.0,
-                            recv_timeout=0.1,
-                            delimiter="|"   # or "\n" if RAPID uses newline
-                        )
+        # self.notifier = NotificationListener(
+        #                     host="192.168.125.1",
+        #                     port=5001,
+        #                     on_message=_on_notify,
+        #                     retry_delay=1.0,
+        #                     recv_timeout=0.1,
+        #                     delimiter="|"   # or "\n" if RAPID uses newline
+        #                 )
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
@@ -81,7 +81,7 @@ class GestureDetector:
         # Initialize the gesture recognizer
         self.recognizer = GestureRecognizer.create_from_options(self.options)
         # The camera index 0 is often the built-in webcam. You may need to change it if you have multiple cameras.
-        self.cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(0,)
         cv2.namedWindow("Gesture Recognition with Hand Tracking", cv2.WINDOW_NORMAL)
 
     def detect_middle_finger(self, hand_landmarks) -> bool:
@@ -144,27 +144,36 @@ class GestureDetector:
 
     def draw_hand_skeleton(self, frame, hand_landmarks) -> None:
         """Draw the hand skeleton using MediaPipe landmarks."""
+        h, w, _ = frame.shape
         for landmarks in hand_landmarks:
+            # Draw connections
             for connection in self.mp_hands.HAND_CONNECTIONS:
                 start = landmarks.landmark[connection[0]]
                 end = landmarks.landmark[connection[1]]
-
-                # Convert to pixel coordinates
-                h, w, _ = frame.shape
                 start_point = (int(start.x * w), int(start.y * h))
                 end_point = (int(end.x * w), int(end.y * h))
-
-                # Draw connections between hand joints in white
                 cv2.line(frame, start_point, end_point, (255, 255, 255), 2)
 
-            # Draw hand keypoints in red
-            for landmark in landmarks.landmark:
-                x, y = int(landmark.x * w), int(landmark.y * h)
+            # Draw keypoints
+            for lm in landmarks.landmark:
+                x, y = int(lm.x * w), int(lm.y * h)
                 cv2.circle(frame, (x, y), 4, (0, 0, 128), -1)
 
-            # Detect if the middle finger gesture is present
+            # Check for middle finger gesture
             if self.detect_middle_finger(landmarks):
                 self.gesture_result = "Middle_Finger"
+
+            # If this hand corresponds to the current gesture, highlight it
+            if self.gesture_result:
+                # Compute bounding box
+                xs = [lm.x * w for lm in landmarks.landmark]
+                ys = [lm.y * h for lm in landmarks.landmark]
+                x_min, x_max = int(min(xs)), int(max(xs))
+                y_min, y_max = int(min(ys)), int(max(ys))
+
+                # Draw a green rectangle around the hand
+                cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+                break  # Highlight only the first matched hand
 
     @staticmethod
     def overlay_image(frame, overlay, x=0, y=0, scale=1.0):
@@ -285,7 +294,7 @@ class GestureDetector:
 
                 if current_time - last_message_time >= 1.5:
                     # TODO: comment out the line below if not connected to server
-                    self.send_gesture_message()
+                    #self.send_gesture_message()
                     last_message_time = current_time
             else:
                 # Always display blank screen to avoid flickering time
@@ -302,7 +311,7 @@ class GestureDetector:
         self.cap.release()
         cv2.destroyAllWindows()
         self.robot_client.close()
-        self.notifier.stop()
+        #self.notifier.stop()
 
 # Run the gesture detector
 if __name__ == "__main__":
