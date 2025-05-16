@@ -238,15 +238,18 @@ class GestureDetector:
     def send_gesture_message(self):
         print("trying send")
         gesture = self.gesture_result
-        gesture_text = self.gesture_result.strip().lower()
+        if self.gesture_result is not None:
+            gesture_text = self.gesture_result.strip().lower()
+        else:
+            gesture_text = ""
         """Send socket message only if gesture has changed."""
-        if gesture and gesture.strip().lower() != "none" and ((self.last_gesture_sent == "Thumb_Down"
+        if gesture and gesture is not None and ((self.last_gesture_sent == "Thumb_Down"
                                                                and gesture == "Thumb_Up")
                                                               or not self.doing_action):
             print("sending valid gesture")
             self.last_gesture_sent = gesture
             self.robot_client.send_message(gesture)
-        elif gesture_text == "none" or gesture_text == "pointing_up" or gesture_text == "iloveyou":
+        elif gesture is None or gesture_text == "pointing_up" or gesture_text == "iloveyou":
             print("Skipping invalid gesture:", gesture)
         else:
             print("Robot is already doing action")
@@ -263,13 +266,17 @@ class GestureDetector:
 
             frame = cv2.flip(frame, 1)
 
-            # 1) figure out overlay size
+            # 1) get the overlay image (or None)
             overlay = self.gesture_images.get(self.gesture_result or "None")
-            oh, ow = overlay.shape[:2]
-            oh = int(oh * 0.3); ow = int(ow * 0.3)
-
-            # 2) mask it out
-            frame[0:oh, 0:ow] = 0
+#
+            ## 2) if we actually have an image, compute its masked‐out size
+            if overlay is not None:
+                h, w = overlay.shape[:2]
+                oh = int(h * 0.3)
+                ow = int(w * 0.3)
+#
+            #    # 3) zero out that region so detectors ignore it
+                frame[0:oh, 0:ow] = 0
 
             # Convert frame to RGB format (MediaPipe expects RGB images)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -296,7 +303,7 @@ class GestureDetector:
                 print(self.gesture_result)
                 gesture_image = self.gesture_images.get(self.gesture_result, None)
                 if gesture_image is not None:
-                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.3)
+                    self.overlay_image(frame=frame, overlay=gesture_image, x=x, y=y, scale=0.4)
                     #self.display_text(frame=frame,
                     #                  text=f"Wait! I'm answering \n"
                     #                       f"to your gesture: \n"
