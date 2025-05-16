@@ -49,7 +49,7 @@ class GestureDetector:
 
         # Initialize MediaPipe Hands for skeleton tracking
         self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(min_detection_confidence=0.75, min_tracking_confidence=0.5)
+        self.hands = self.mp_hands.Hands(min_detection_confidence=0.65, min_tracking_confidence=0.5)
 
         # A dictionary that loads images for gestures
         self.gesture_images = {
