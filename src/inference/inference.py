@@ -83,6 +83,7 @@ while True:
         for label, score in gesture_scores.items():
             if score >= SCORE_THRESHOLD:
                 print(f"Gesture detected: {label} (score={score:.2f})")
+                # The following row is used to send the socket messages to the robot but the functionality has not been implemented in this version of the code. The class labels are not the same in this branch and must be matched to the original ones to implement this feature.
                 # send_socket_message(label.upper())
                 gesture_scores[label] = 0.0  # Reset after sending
 
